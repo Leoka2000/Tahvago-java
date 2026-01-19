@@ -24,23 +24,54 @@ public class AppUser implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
+
+    @Column(nullable = false)
+    private String fullName;
+
     @Column(unique = true, nullable = false)
     private String username;
+
     @Column(unique = true, nullable = false)
     private String email;
+
     @Column(nullable = false)
     private String password;
 
+    @Column(nullable = false)
+    private String phone;
+
+    @Column(name = "tax_id", unique = true)
+    private String taxId;
+
+    @Column(name = "country_code", length = 2)
+    private String countryCode;
+
+    @Column(name = "has_professional_registration")
+    private Boolean hasProfessionalRegistration;
+
+    @Column(name = "professional_order")
+    private String professionalOrder;
+
+    @Column(name = "professional_id_number")
+    private String professionalIdNumber;
+
     @Column(name = "verification_code")
     private String verificationCode;
+
     @Column(name = "verification_expiration")
     private LocalDateTime verificationCodeExpiresAt;
+
     private boolean enabled;
 
-    public AppUser(String username, String email, String password) {
+    @Column(name = "accepted_terms")
+    private Boolean acceptedTerms;
+
+    public AppUser(String fullName, String username, String email, String password, String phone) {
+        this.fullName = fullName;
         this.username = username;
         this.email = email;
         this.password = password;
+        this.phone = phone;
     }
     
     public AppUser(){

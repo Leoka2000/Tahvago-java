@@ -51,10 +51,23 @@ public class AuthenticationService {
             throw new RegistrationException("Email already exists");
         }
 
-        AppUser user = new AppUser(input.getUsername(), input.getEmail(), passwordEncoder.encode(input.getPassword()));
+        AppUser user = new AppUser();
+        user.setFullName(input.getFullName());
+        user.setUsername(input.getUsername());
+        user.setEmail(input.getEmail());
+        user.setPassword(passwordEncoder.encode(input.getPassword()));
+        user.setPhone(input.getPhone());
+        user.setTaxId(input.getTaxId());
+        user.setCountryCode(input.getCountryCode());
+        user.setHasProfessionalRegistration(input.isHasProfessionalRegistration());
+        user.setProfessionalOrder(input.getProfessionalOrder());
+        user.setProfessionalIdNumber(input.getProfessionalIdNumber());
+        user.setAcceptedTerms(input.isAcceptedTerms());
+
         user.setVerificationCode(generateVerificationCode());
         user.setVerificationCodeExpiresAt(LocalDateTime.now().plusMinutes(15));
         user.setEnabled(false);
+
         sendVerificationEmail(user);
         return userRepository.save(user);
     }
@@ -217,19 +230,17 @@ public class AuthenticationService {
         return String.valueOf(code);
     }
 
-
-
     public void resetPassword(ResetPasswordDto input) {
-    AppUser user = userRepository.findByVerificationCode(input.getCode())
-            .orElseThrow(() -> new RuntimeException("Invalid reset code"));
+        AppUser user = userRepository.findByVerificationCode(input.getCode())
+                .orElseThrow(() -> new RuntimeException("Invalid reset code"));
 
-    if (user.getVerificationCodeExpiresAt().isBefore(LocalDateTime.now())) {
-        throw new RuntimeException("Reset code has expired");
+        if (user.getVerificationCodeExpiresAt().isBefore(LocalDateTime.now())) {
+            throw new RuntimeException("Reset code has expired");
+        }
+
+        user.setPassword(passwordEncoder.encode(input.getNewPassword()));
+        user.setVerificationCode(null);
+        user.setVerificationCodeExpiresAt(null);
+        userRepository.save(user);
     }
-
-    user.setPassword(passwordEncoder.encode(input.getNewPassword()));
-    user.setVerificationCode(null);
-    user.setVerificationCodeExpiresAt(null);
-    userRepository.save(user);
-}
 }

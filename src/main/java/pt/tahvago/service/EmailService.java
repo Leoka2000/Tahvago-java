@@ -16,7 +16,6 @@ public class EmailService {
     public void sendVerificationEmail(String to, String subject, String text) throws MessagingException {
         MimeMessage message = emailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true);
-
         helper.setFrom("reusoliveiraleo@gmail.com"); // isso é importantissimo
         helper.setTo(to);
         helper.setSubject(subject);
