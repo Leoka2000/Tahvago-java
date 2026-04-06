@@ -8,6 +8,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -137,5 +138,37 @@ public class UserController {
             logger.error("Unexpected error during password change", e);
             return ResponseEntity.internalServerError().body(Map.of("error", "Failed to change password"));
         }
+
     }
+
+    @PatchMapping("/me/profile-picture")
+    public ResponseEntity<?> editProfilePicture(@RequestParam("file") MultipartFile file) {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            AppUser currentUser = (AppUser) authentication.getPrincipal();
+
+            AppUser updatedUser = userService.updateProfilePicture(currentUser.getId(), file);
+
+            return ResponseEntity.ok(Map.of(
+                    "message", "Profile picture updated successfully",
+                    "profilePictureUrl", updatedUser.getProfilePictureUrl()));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @DeleteMapping("/me/profile-picture")
+    public ResponseEntity<?> deleteProfilePicture() {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            AppUser currentUser = (AppUser) authentication.getPrincipal();
+
+            userService.deleteProfilePicture(currentUser.getId());
+
+            return ResponseEntity.ok(Map.of("message", "Profile picture deleted successfully"));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
+        }
+    }
+
 }

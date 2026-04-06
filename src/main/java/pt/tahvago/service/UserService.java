@@ -47,6 +47,16 @@ public class UserService {
                 Files.createDirectories(root);
             }
 
+            if (user.getProfilePictureUrl() != null) {
+                try {
+                    String oldFileName = user.getProfilePictureUrl().replace("/uploads/profiles/", "");
+                    Path oldFilePath = root.resolve(oldFileName);
+                    Files.deleteIfExists(oldFilePath);
+                } catch (Exception e) {
+                    System.err.println("Failed to delete old profile picture: " + e.getMessage());
+                }
+            }
+
             String filename = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
             Files.copy(file.getInputStream(), root.resolve(filename), StandardCopyOption.REPLACE_EXISTING);
 
@@ -122,4 +132,28 @@ public class UserService {
         System.out.println("Sending email to: " + email);
         System.out.println("Reset Link: " + resetLink);
     }
+
+
+    @Transactional
+public AppUser deleteProfilePicture(Long userId) {
+    AppUser user = userRepository.findById(userId)
+            .orElseThrow(() -> new RuntimeException("User not found"));
+
+    if (user.getProfilePictureUrl() != null) {
+        try {
+            Path root = Paths.get(uploadDir);
+            String filename = user.getProfilePictureUrl().replace("/uploads/profiles/", "");
+            Path filePath = root.resolve(filename);
+            
+            Files.deleteIfExists(filePath);
+        } catch (Exception e) {
+            System.err.println("Failed to delete file: " + e.getMessage());
+        }
+
+        user.setProfilePictureUrl(null);
+        return userRepository.save(user);
+    }
+    
+    return user;
+}
 }
