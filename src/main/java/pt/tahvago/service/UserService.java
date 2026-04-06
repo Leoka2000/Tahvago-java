@@ -30,28 +30,24 @@ public class UserService {
     }
 
     @Transactional
-    public AppUser updateUser(Long userId, String username, String email) {
-        AppUser user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+public AppUser updateUser(Long userId, String fullName, String email) {
+    AppUser user = userRepository.findById(userId)
+            .orElseThrow(() -> new RuntimeException("User not found"));
 
-        if (username != null && !username.isBlank()) {
-            Optional<AppUser> existingUser = userRepository.findByUsername(username);
-            if (existingUser.isPresent() && !existingUser.get().getId().equals(userId)) {
-                throw new RuntimeException("Username already taken");
-            }
-            user.setUsername(username);
-        }
-
-        if (email != null && !email.isBlank()) {
-            Optional<AppUser> existingUser = userRepository.findByEmail(email);
-            if (existingUser.isPresent() && !existingUser.get().getId().equals(userId)) {
-                throw new RuntimeException("Email already taken");
-            }
-            user.setEmail(email);
-        }
-
-        return userRepository.save(user);
+    if (fullName != null && !fullName.isBlank()) {
+        user.setFullName(fullName);
     }
+
+    if (email != null && !email.isBlank()) {
+        Optional<AppUser> existingUser = userRepository.findByEmail(email);
+        if (existingUser.isPresent() && !existingUser.get().getId().equals(userId)) {
+            throw new RuntimeException("Email already taken");
+        }
+        user.setEmail(email);
+    }
+
+    return userRepository.save(user);
+}
 
     @Transactional
     public void changePassword(Long userId, String currentPassword, String newPassword, String confirmPassword) {

@@ -44,29 +44,19 @@ public class AuthenticationService {
     }
 
     public AppUser signup(RegisterUserDto input) {
-        if (userRepository.findByUsername(input.getUsername()).isPresent()) {
-            throw new RegistrationException("Username already exists");
-        }
         if (userRepository.findByEmail(input.getEmail()).isPresent()) {
             throw new RegistrationException("Email already exists");
         }
 
         AppUser user = new AppUser();
         user.setFullName(input.getFullName());
-        user.setUsername(input.getUsername());
         user.setEmail(input.getEmail());
         user.setPassword(passwordEncoder.encode(input.getPassword()));
-        user.setPhone(input.getPhone());
-        user.setTaxId(input.getTaxId());
-        user.setCountryCode(input.getCountryCode());
-        user.setHasProfessionalRegistration(input.isHasProfessionalRegistration());
-        user.setProfessionalOrder(input.getProfessionalOrder());
-        user.setProfessionalIdNumber(input.getProfessionalIdNumber());
-        user.setAcceptedTerms(input.isAcceptedTerms());
-
+        
+        user.setUsername(input.getEmail());
+        user.setEnabled(false);
         user.setVerificationCode(generateVerificationCode());
         user.setVerificationCodeExpiresAt(LocalDateTime.now().plusMinutes(15));
-        user.setEnabled(false);
 
         sendVerificationEmail(user);
         return userRepository.save(user);
@@ -139,13 +129,9 @@ public class AuthenticationService {
 
     private boolean isBlocked(String ip) {
         LockoutInfo info = lockoutCache.get(ip);
-        if (info == null)
-            return false;
-
+        if (info == null) return false;
         if (info.attempts >= MAX_ATTEMPTS) {
-            if (LocalDateTime.now().isBefore(info.lockoutEndTime)) {
-                return true;
-            }
+            if (LocalDateTime.now().isBefore(info.lockoutEndTime)) return true;
             lockoutCache.remove(ip);
         }
         return false;
@@ -203,15 +189,14 @@ public class AuthenticationService {
 
     private void sendVerificationEmail(AppUser user) {
         String subject = "Account Verification";
-        String verificationCode = "VERIFICATION CODE " + user.getVerificationCode();
+        String verificationCode = user.getVerificationCode();
         String htmlMessage = "<html>"
                 + "<body style=\"font-family: Arial, sans-serif;\">"
                 + "<div style=\"background-color: #f5f5f5; padding: 20px;\">"
-                + "<h2 style=\"color: #333;\">Welcome to our app!</h2>"
-                + "<p style=\"font-size: 16px;\">Please enter the verification code below to continue:</p>"
-                + "<div style=\"background-color: #fff; padding: 20px; border-radius: 5px; box-shadow: 0 0 10px rgba(0,0,0,0.1);\">"
-                + "<h3 style=\"color: #333;\">Verification Code:</h3>"
-                + "<p style=\"font-size: 18px; font-weight: bold; color: #007bff;\">" + verificationCode + "</p>"
+                + "<h2 style=\"color: #333;\">Welcome!</h2>"
+                + "<p>Please enter the code below to verify your account:</p>"
+                + "<div style=\"background-color: #fff; padding: 20px; border-radius: 5px;\">"
+                + "<h3 style=\"color: #007bff;\">" + verificationCode + "</h3>"
                 + "</div>"
                 + "</div>"
                 + "</body>"
@@ -226,8 +211,7 @@ public class AuthenticationService {
 
     private String generateVerificationCode() {
         Random random = new Random();
-        int code = random.nextInt(900000) + 100000;
-        return String.valueOf(code);
+        return String.valueOf(random.nextInt(900000) + 100000);
     }
 
     public void resetPassword(ResetPasswordDto input) {

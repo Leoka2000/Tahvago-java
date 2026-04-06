@@ -28,7 +28,7 @@ public class AppUser implements UserDetails {
     @Column(nullable = false)
     private String fullName;
 
-    @Column(unique = true, nullable = false)
+    @Column(unique = true, nullable = true)
     private String username;
 
     @Column(unique = true, nullable = false)
@@ -37,23 +37,11 @@ public class AppUser implements UserDetails {
     @Column(nullable = false)
     private String password;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private String phone;
 
     @Column(name = "tax_id", unique = true)
     private String taxId;
-
-    @Column(name = "country_code", length = 2)
-    private String countryCode;
-
-    @Column(name = "has_professional_registration")
-    private Boolean hasProfessionalRegistration;
-
-    @Column(name = "professional_order")
-    private String professionalOrder;
-
-    @Column(name = "professional_id_number")
-    private String professionalIdNumber;
 
     @Column(name = "verification_code")
     private String verificationCode;
@@ -74,12 +62,16 @@ public class AppUser implements UserDetails {
         this.phone = phone;
     }
     
-    public AppUser(){
-    }
+    public AppUser() {}
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of();
+    }
+
+    @Override
+    public String getUsername() {
+        return email;
     }
 
     @Override
