@@ -1,14 +1,20 @@
 package pt.tahvago.service;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import pt.tahvago.model.AppUser;
 import pt.tahvago.repository.UserRepository;
@@ -17,6 +23,7 @@ import pt.tahvago.repository.UserRepository;
 public class UserService {
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;
+    private final String uploadDir = "uploads/profiles/";
 
     public UserService(UserRepository userRepository, BCryptPasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
@@ -30,24 +37,46 @@ public class UserService {
     }
 
     @Transactional
-public AppUser updateUser(Long userId, String fullName, String email) {
-    AppUser user = userRepository.findById(userId)
-            .orElseThrow(() -> new RuntimeException("User not found"));
+    public AppUser updateProfilePicture(Long userId, MultipartFile file) {
+        AppUser user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
-    if (fullName != null && !fullName.isBlank()) {
-        user.setFullName(fullName);
-    }
+        try {
+            Path root = Paths.get(uploadDir);
+            if (!Files.exists(root)) {
+                Files.createDirectories(root);
+            }
 
-    if (email != null && !email.isBlank()) {
-        Optional<AppUser> existingUser = userRepository.findByEmail(email);
-        if (existingUser.isPresent() && !existingUser.get().getId().equals(userId)) {
-            throw new RuntimeException("Email already taken");
+            String filename = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
+            Files.copy(file.getInputStream(), root.resolve(filename), StandardCopyOption.REPLACE_EXISTING);
+
+            String fileUrl = "/uploads/profiles/" + filename;
+            user.setProfilePictureUrl(fileUrl);
+            return userRepository.save(user);
+        } catch (Exception e) {
+            throw new RuntimeException("Could not store the file. Error: " + e.getMessage());
         }
-        user.setEmail(email);
     }
 
-    return userRepository.save(user);
-}
+    @Transactional
+    public AppUser updateUser(Long userId, String fullName, String email) {
+        AppUser user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (fullName != null && !fullName.isBlank()) {
+            user.setFullName(fullName);
+        }
+
+        if (email != null && !email.isBlank()) {
+            Optional<AppUser> existingUser = userRepository.findByEmail(email);
+            if (existingUser.isPresent() && !existingUser.get().getId().equals(userId)) {
+                throw new RuntimeException("Email already taken");
+            }
+            user.setEmail(email);
+        }
+
+        return userRepository.save(user);
+    }
 
     @Transactional
     public void changePassword(Long userId, String currentPassword, String newPassword, String confirmPassword) {

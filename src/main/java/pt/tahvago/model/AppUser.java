@@ -31,6 +31,9 @@ public class AppUser implements UserDetails {
     @Column(unique = true, nullable = true)
     private String username;
 
+    @Column(name = "profile_picture_url")
+    private String profilePictureUrl;
+
     @Column(unique = true, nullable = false)
     private String email;
 
@@ -61,8 +64,9 @@ public class AppUser implements UserDetails {
         this.password = password;
         this.phone = phone;
     }
-    
-    public AppUser() {}
+
+    public AppUser() {
+    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
