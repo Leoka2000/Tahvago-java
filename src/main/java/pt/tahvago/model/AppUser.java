@@ -12,6 +12,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
@@ -22,11 +23,14 @@ import lombok.Setter;
 @Setter
 public class AppUser implements UserDetails {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false)
     private String fullName;
+
+    @Column(nullable = true)
+    private String role = "user";
 
     @Column(unique = true, nullable = true)
     private String username;
@@ -36,6 +40,11 @@ public class AppUser implements UserDetails {
 
     @Column(unique = true, nullable = false)
     private String email;
+
+  
+
+    @Column(nullable = false)
+    private String startupStatus = "pending";
 
     @Column(nullable = false)
     private String password;
@@ -52,10 +61,18 @@ public class AppUser implements UserDetails {
     @Column(name = "verification_expiration")
     private LocalDateTime verificationCodeExpiresAt;
 
-    private boolean enabled;
+    private boolean enabled = false;
 
     @Column(name = "accepted_terms")
-    private Boolean acceptedTerms;
+    private Boolean acceptedTerms = false;
+
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
+    }
 
     public AppUser(String fullName, String username, String email, String password, String phone) {
         this.fullName = fullName;
@@ -63,10 +80,14 @@ public class AppUser implements UserDetails {
         this.email = email;
         this.password = password;
         this.phone = phone;
+        this.role = "user";
+        
+        this.startupStatus = "pending";
+        this.enabled = false;
+        this.acceptedTerms = true;
     }
 
-    public AppUser() {
-    }
+    public AppUser() {}
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -79,22 +100,14 @@ public class AppUser implements UserDetails {
     }
 
     @Override
-    public boolean isAccountNonExpired() {
-        return true;
-    }
+    public boolean isAccountNonExpired() { return true; }
 
     @Override
-    public boolean isAccountNonLocked() {
-        return true;
-    }
+    public boolean isAccountNonLocked() { return true; }
 
     @Override
-    public boolean isCredentialsNonExpired() {
-        return true;
-    }
+    public boolean isCredentialsNonExpired() { return true; }
 
     @Override
-    public boolean isEnabled() {
-        return enabled;
-    }
+    public boolean isEnabled() { return enabled; }
 }

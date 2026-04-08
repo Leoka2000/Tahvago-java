@@ -156,4 +156,28 @@ public AppUser deleteProfilePicture(Long userId) {
     
     return user;
 }
+
+
+@Transactional
+public void updateBulkStatus(List<Long> userIds, String status) {
+    Iterable<AppUser> users = userRepository.findAllById(userIds);
+    users.forEach(user -> {
+        user.setStartupStatus(status.toLowerCase());
+    });
+    userRepository.saveAll(users);
+}
+
+@Transactional
+public void updateBulkRole(List<Long> userIds, String role) {
+    Iterable<AppUser> users = userRepository.findAllById(userIds);
+    users.forEach(user -> {
+        user.setRole(role.toLowerCase());
+    });
+    userRepository.saveAll(users);
+}
+
+@Transactional
+public void deleteBulkUsers(List<Long> userIds) {
+    userRepository.deleteAllById(userIds);
+}
 }

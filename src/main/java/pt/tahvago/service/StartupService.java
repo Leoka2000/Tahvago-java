@@ -19,6 +19,18 @@ public class StartupService {
 
     private final StartupRepository startupRepository;
 
+
+  
+
+    public StartupResponse getStartupByUserId(Long userId) {
+        Startup startup = startupRepository.findByOwnerId(userId)
+                .orElseThrow(() -> new RuntimeException("Startup not found for this user"));
+        
+        return mapToResponse(startup);
+    }
+
+
+
     @Transactional
     public StartupResponse createStartup(StartupCreateRequest request, AppUser user) {
         Startup startup = Startup.builder()
@@ -46,19 +58,18 @@ public class StartupService {
                 .collect(Collectors.toList());
     }
 
-   private StartupResponse mapToResponse(Startup startup) {
-    return StartupResponse.builder()
-            .id(startup.getId())
-            .name(startup.getName())
-            .description(startup.getDescription())
-            .website(startup.getWebsite())
-            .logoUrl(startup.getLogoUrl())
-            .industry(startup.getIndustry())
-            .stage(startup.getStage())
-            .foundingYear(startup.getFoundingYear())
-            .teamSize(startup.getTeamSize())
-            .country(startup.getCountry())
-            .userId(startup.getOwner().getId()) 
-            .build();
-}
+  private StartupResponse mapToResponse(Startup startup) {
+        return StartupResponse.builder()
+                .id(startup.getId())
+                .name(startup.getName())
+                .description(startup.getDescription())
+                .website(startup.getWebsite())
+                .logoUrl(startup.getLogoUrl())
+                .industry(startup.getIndustry())
+                .stage(startup.getStage())
+                .foundingYear(startup.getFoundingYear())
+                .teamSize(startup.getTeamSize())
+                .country(startup.getCountry())
+                .build();
+    }
 }

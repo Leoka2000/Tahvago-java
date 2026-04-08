@@ -16,7 +16,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "startups")
+@Table(name = "startup")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -36,7 +36,8 @@ public class Startup {
 
     private String website;
 
-    @Column(name = "logo_url")
+    @Column(name = "logo_url", nullable=true)
+    
     private String logoUrl;
 
     private String industry;

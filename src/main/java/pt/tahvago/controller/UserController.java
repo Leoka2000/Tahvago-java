@@ -1,5 +1,6 @@
 package pt.tahvago.controller;
 
+import java.util.List;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -18,6 +19,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import pt.tahvago.dto.BulkDeleteDto;
+import pt.tahvago.dto.BulkRoleUpdateDto;
+import pt.tahvago.dto.BulkStatusUpdateDto;
 import pt.tahvago.dto.ChangePasswordDto;
 import pt.tahvago.dto.UpdateUserDto;
 import pt.tahvago.model.AppUser;
@@ -36,10 +40,43 @@ public class UserController {
         this.jwtService = jwtService;
     }
 
-    @GetMapping
-    public ResponseEntity<java.util.List<AppUser>> allUsers() {
+    @PatchMapping("/bulk-role")
+    public ResponseEntity<?> updateBulkRole(@RequestBody BulkRoleUpdateDto dto) {
         try {
-            java.util.List<AppUser> users = userService.allUsers();
+            userService.updateBulkRole(dto.getUserIds(), dto.getNewRole());
+            return ResponseEntity.ok(Map.of("message", "Roles updated successfully"));
+        } catch (Exception e) {
+            logger.error("Error updating bulk roles", e);
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @PatchMapping("/bulk-status")
+    public ResponseEntity<?> updateBulkStatus(@RequestBody BulkStatusUpdateDto dto) {
+        try {
+            userService.updateBulkStatus(dto.getUserIds(), dto.getNewStatus());
+            return ResponseEntity.ok(Map.of("message", "Statuses updated successfully"));
+        } catch (Exception e) {
+            logger.error("Error updating bulk status", e);
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @DeleteMapping("/bulk-delete")
+    public ResponseEntity<?> deleteBulkUsers(@RequestBody BulkDeleteDto dto) {
+        try {
+            userService.deleteBulkUsers(dto.getUserIds());
+            return ResponseEntity.ok(Map.of("message", "Users deleted successfully"));
+        } catch (Exception e) {
+            logger.error("Error deleting bulk users", e);
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @GetMapping
+    public ResponseEntity<List<AppUser>> allUsers() {
+        try {
+            List<AppUser> users = userService.allUsers();
             return ResponseEntity.ok(users);
         } catch (Exception e) {
             logger.error("Error fetching all users", e);
@@ -141,22 +178,6 @@ public class UserController {
 
     }
 
-    @PatchMapping("/me/profile-picture")
-    public ResponseEntity<?> editProfilePicture(@RequestParam("file") MultipartFile file) {
-        try {
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            AppUser currentUser = (AppUser) authentication.getPrincipal();
-
-            AppUser updatedUser = userService.updateProfilePicture(currentUser.getId(), file);
-
-            return ResponseEntity.ok(Map.of(
-                    "message", "Profile picture updated successfully",
-                    "profilePictureUrl", updatedUser.getProfilePictureUrl()));
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
-        }
-    }
-
     @DeleteMapping("/me/profile-picture")
     public ResponseEntity<?> deleteProfilePicture() {
         try {
@@ -170,5 +191,4 @@ public class UserController {
             return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
         }
     }
-
 }
