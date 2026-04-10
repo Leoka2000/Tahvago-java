@@ -6,11 +6,13 @@ import lombok.Setter;
 @Getter
 @Setter
 public class UserDto {
-    private String username;
+    private Long id;
+    private String fullName;
     private String email;
+    private String username;
+    private String role;
+    private String profilePictureUrl;
+    private String startupStatus;
 
-    public UserDto(String username, String email) {
-        this.username = username;
-        this.email = email;
-    }
+    public UserDto() {}
 }

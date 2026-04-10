@@ -24,6 +24,7 @@ import pt.tahvago.dto.BulkRoleUpdateDto;
 import pt.tahvago.dto.BulkStatusUpdateDto;
 import pt.tahvago.dto.ChangePasswordDto;
 import pt.tahvago.dto.UpdateUserDto;
+import pt.tahvago.dto.UserDto;
 import pt.tahvago.model.AppUser;
 import pt.tahvago.service.JwtService;
 import pt.tahvago.service.UserService;
@@ -117,20 +118,31 @@ public class UserController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<AppUser> authenticatedUser() {
+    public ResponseEntity<UserDto> authenticatedUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        if (authentication == null) {
+        if (authentication == null || !authentication.isAuthenticated()) {
             return ResponseEntity.status(401).build();
         }
 
         try {
             AppUser currentUser = (AppUser) authentication.getPrincipal();
-            return ResponseEntity.ok(currentUser);
+
+            UserDto dto = new UserDto();
+            dto.setId(currentUser.getId());
+            dto.setFullName(currentUser.getFullName());
+            dto.setEmail(currentUser.getEmail());
+            dto.setUsername(currentUser.getUsername());
+            dto.setRole(currentUser.getRole());
+            dto.setProfilePictureUrl(currentUser.getProfilePictureUrl());
+            dto.setStartupStatus(currentUser.getStartupStatus());
+
+            return ResponseEntity.ok(dto);
         } catch (ClassCastException e) {
             logger.error("Principal is not of type AppUser", e);
             return ResponseEntity.status(403).build();
         } catch (Exception e) {
+            logger.error("Error fetching authenticated user", e);
             return ResponseEntity.internalServerError().build();
         }
     }
