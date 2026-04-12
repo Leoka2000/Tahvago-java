@@ -30,12 +30,22 @@ public class Conference {
 
     private String location;
 
+    @Column(columnDefinition = "TEXT")
+    private String description;
+
+    @Column(name = "image_url")
+    private String imageUrl;
+
     @Column(name = "event_date")
     private LocalDateTime eventDate;
 
     @ManyToMany(mappedBy = "attendedConferences")
     @JsonIgnore
     private Set<AppUser> participants = new HashSet<>();
+
+    @ManyToMany(mappedBy = "attendedConferences")
+    @JsonIgnore
+    private Set<Startup> participatingStartups = new HashSet<>();
 
     public Conference() {}
 }

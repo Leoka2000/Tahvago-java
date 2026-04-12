@@ -33,8 +33,17 @@ public class AppUser implements UserDetails {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+   @Column(nullable = false)
+    private String firstName;
+
+    @Column(nullable = false)
+    private String lastName;
+
+    // We no longer need a separate column for fullName if we want it to be dynamic,
+    // but to keep your DB script and existing logic working exactly as is:
     @Column(nullable = false)
     private String fullName;
+   
 
     @Column(nullable = true)
     private String role = "user";
@@ -46,7 +55,7 @@ public class AppUser implements UserDetails {
     private String profilePictureUrl;
 
     @Column(unique = true, nullable = false)
-    private String email;
+    private String email; 
 
     @ManyToMany(fetch = FetchType.LAZY, cascade = { CascadeType.PERSIST, CascadeType.MERGE })
     @JoinTable(
@@ -87,18 +96,6 @@ public class AppUser implements UserDetails {
         this.createdAt = LocalDateTime.now();
     }
 
-    public AppUser(String fullName, String username, String email, String password, String phone) {
-        this.fullName = fullName;
-        this.username = username;
-        this.email = email;
-        this.password = password;
-        this.phone = phone;
-        this.role = "user";
-        this.startupStatus = "pending";
-        this.enabled = false;
-        this.acceptedTerms = true;
-    }
-
     public AppUser() {}
 
     @Override
@@ -113,13 +110,23 @@ public class AppUser implements UserDetails {
 
     @Override
     public boolean isAccountNonExpired() { return true; }
-
     @Override
     public boolean isAccountNonLocked() { return true; }
-
     @Override
     public boolean isCredentialsNonExpired() { return true; }
-
     @Override
     public boolean isEnabled() { return enabled; }
+
+
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
+        if (fullName != null && fullName.contains(" ")) {
+            String[] parts = fullName.split(" ", 2);
+            this.firstName = parts[0];
+            this.lastName = parts[1];
+        } else {
+            this.firstName = fullName;
+            this.lastName = "";
+        }
+    }
 }
