@@ -42,10 +42,8 @@ public class Startup {
 
     private String website;
 
-    @Column(name = "logo_url", nullable=true)
-    private String logoUrl;
-
     private String industry;
+    
     private String stage;
 
     @Column(name = "founding_year")

@@ -43,24 +43,30 @@ public class AuthenticationService {
         this.emailService = emailService;
     }
 
-    public AppUser signup(RegisterUserDto input) {
-        if (userRepository.findByEmail(input.getEmail()).isPresent()) {
-            throw new RegistrationException("Email already exists");
-        }
-
-        AppUser user = new AppUser();
-        user.setFullName(input.getFullName());
-        user.setEmail(input.getEmail());
-        user.setPassword(passwordEncoder.encode(input.getPassword()));
-        
-        user.setUsername(input.getEmail());
-        user.setEnabled(false);
-        user.setVerificationCode(generateVerificationCode());
-        user.setVerificationCodeExpiresAt(LocalDateTime.now().plusMinutes(15));
-
-        sendVerificationEmail(user);
-        return userRepository.save(user);
+   public AppUser signup(RegisterUserDto input) {
+    if (userRepository.findByEmail(input.getEmail()).isPresent()) {
+        throw new RegistrationException("Email already exists");
     }
+
+    AppUser user = new AppUser();
+    // Set individual fields
+    user.setFirstName(input.getFirstName());
+    user.setLastName(input.getLastName());
+    
+    // Construct fullName so the DB column isn't null
+    user.setFullName(input.getFirstName() + " " + input.getLastName());
+    
+    user.setEmail(input.getEmail());
+    user.setPassword(passwordEncoder.encode(input.getPassword()));
+    
+    user.setUsername(input.getEmail());
+    user.setEnabled(false);
+    user.setVerificationCode(generateVerificationCode());
+    user.setVerificationCodeExpiresAt(LocalDateTime.now().plusMinutes(15));
+
+    sendVerificationEmail(user);
+    return userRepository.save(user);
+}
 
     public void forgotPassword(String email) {
         AppUser user = userRepository.findByEmail(email)

@@ -7,10 +7,9 @@ public class StartupCreateRequest {
     private String name;
     private String description;
     private String website;
-    private String logoUrl;
     private String industry;
     private String stage;
-    private Integer foundingYear;
+    private String foundingYear; 
     private Integer teamSize;
     private String country;
 }

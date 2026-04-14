@@ -27,22 +27,31 @@ public class StartupController {
 
     private final StartupService startupService;
 
-    @GetMapping("/my-startup")
-    public ResponseEntity<StartupResponse> getMyStartup() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        AppUser currentUser = (AppUser) authentication.getPrincipal();
-
-        return ResponseEntity.ok(startupService.getStartupByUserId(currentUser.getId()));
-    }
-
     @PostMapping
-    public ResponseEntity<StartupResponse> create(@RequestBody StartupCreateRequest request) {
+    public ResponseEntity<StartupResponse> createStartup(@RequestBody StartupCreateRequest request) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !(authentication.getPrincipal() instanceof AppUser)) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+
         AppUser currentUser = (AppUser) authentication.getPrincipal();
 
         return new ResponseEntity<>(
                 startupService.createStartup(request, currentUser),
                 HttpStatus.CREATED);
+    }
+
+    @GetMapping("/my-startup")
+    public ResponseEntity<StartupResponse> getMyStartup() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !(authentication.getPrincipal() instanceof AppUser)) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+
+        AppUser currentUser = (AppUser) authentication.getPrincipal();
+        return ResponseEntity.ok(startupService.getStartupByUserId(currentUser.getId()));
     }
 
     @GetMapping

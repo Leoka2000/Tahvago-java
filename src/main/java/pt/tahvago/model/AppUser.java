@@ -118,8 +118,10 @@ public class AppUser implements UserDetails {
     public boolean isEnabled() { return enabled; }
 
 
+
     public void setFullName(String fullName) {
-        this.fullName = fullName;
+    this.fullName = fullName;
+    if (this.firstName == null || this.lastName == null) {
         if (fullName != null && fullName.contains(" ")) {
             String[] parts = fullName.split(" ", 2);
             this.firstName = parts[0];
@@ -128,5 +130,5 @@ public class AppUser implements UserDetails {
             this.firstName = fullName;
             this.lastName = "";
         }
-    }
+    }}
 }

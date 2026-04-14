@@ -19,9 +19,6 @@ public class StartupService {
 
     private final StartupRepository startupRepository;
 
-
-  
-
     public StartupResponse getStartupByUserId(Long userId) {
         Startup startup = startupRepository.findByOwnerId(userId)
                 .orElseThrow(() -> new RuntimeException("Startup not found for this user"));
@@ -29,18 +26,22 @@ public class StartupService {
         return mapToResponse(startup);
     }
 
-
-
     @Transactional
     public StartupResponse createStartup(StartupCreateRequest request, AppUser user) {
+        Integer year = null;
+        if (request.getFoundingYear() != null && request.getFoundingYear().contains("-")) {
+            year = Integer.parseInt(request.getFoundingYear().split("-")[0]);
+        } else if (request.getFoundingYear() != null && !request.getFoundingYear().isEmpty()) {
+            year = Integer.parseInt(request.getFoundingYear());
+        }
+
         Startup startup = Startup.builder()
                 .name(request.getName())
                 .description(request.getDescription())
                 .website(request.getWebsite())
-                .logoUrl(request.getLogoUrl())
                 .industry(request.getIndustry())
                 .stage(request.getStage())
-                .foundingYear(request.getFoundingYear())
+                .foundingYear(year)
                 .teamSize(request.getTeamSize())
                 .country(request.getCountry())
                 .owner(user) 
@@ -58,18 +59,18 @@ public class StartupService {
                 .collect(Collectors.toList());
     }
 
-  private StartupResponse mapToResponse(Startup startup) {
+    private StartupResponse mapToResponse(Startup startup) {
         return StartupResponse.builder()
                 .id(startup.getId())
                 .name(startup.getName())
                 .description(startup.getDescription())
                 .website(startup.getWebsite())
-                .logoUrl(startup.getLogoUrl())
                 .industry(startup.getIndustry())
                 .stage(startup.getStage())
                 .foundingYear(startup.getFoundingYear())
                 .teamSize(startup.getTeamSize())
                 .country(startup.getCountry())
+                .userId(startup.getOwner().getId())
                 .build();
     }
 }
