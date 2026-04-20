@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import pt.tahvago.dto.CreateUserDto;
 import pt.tahvago.model.AppUser;
 import pt.tahvago.repository.UserRepository;
 
@@ -24,6 +25,8 @@ public class UserService {
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;
     private final String uploadDir = "uploads/profiles/";
+
+
 
     public UserService(UserRepository userRepository, BCryptPasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
@@ -180,4 +183,38 @@ public void updateBulkRole(List<Long> userIds, String role) {
 public void deleteBulkUsers(List<Long> userIds) {
     userRepository.deleteAllById(userIds);
 }
+
+@Transactional
+public AppUser updateStartupStatus(Long userId, String status) {
+    AppUser user = userRepository.findById(userId)
+            .orElseThrow(() -> new RuntimeException("User not found"));
+
+    user.setStartupStatus(status.toLowerCase());
+    return userRepository.save(user);
 }
+
+
+@Transactional
+public AppUser adminCreateUser(CreateUserDto dto) {
+    if (userRepository.findByEmail(dto.getEmail()).isPresent()) {
+        throw new RuntimeException("User with this email already exists.");
+    }
+
+    AppUser user = new AppUser();
+    user.setFirstName(dto.getFirstName());
+    user.setLastName(dto.getLastName());
+    user.setFullName(dto.getFirstName() + " " + dto.getLastName());
+    user.setEmail(dto.getEmail());
+    user.setPassword(passwordEncoder.encode(dto.getPassword()));
+    user.setPhone(dto.getPhone());
+    user.setTaxId(dto.getTaxId());
+    user.setRole("user");
+    user.setStartupStatus("pending");
+    user.setEnabled(true);
+    user.setAcceptedTerms(true);
+
+    return userRepository.save(user);
+}
+}
+
+

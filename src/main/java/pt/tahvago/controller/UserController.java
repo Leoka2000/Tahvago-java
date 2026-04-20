@@ -23,6 +23,8 @@ import pt.tahvago.dto.BulkDeleteDto;
 import pt.tahvago.dto.BulkRoleUpdateDto;
 import pt.tahvago.dto.BulkStatusUpdateDto;
 import pt.tahvago.dto.ChangePasswordDto;
+import pt.tahvago.dto.CreateUserDto;
+import pt.tahvago.dto.UpdateStartupStatusDto;
 import pt.tahvago.dto.UpdateUserDto;
 import pt.tahvago.dto.UserDto;
 import pt.tahvago.model.AppUser;
@@ -82,6 +84,20 @@ public class UserController {
         } catch (Exception e) {
             logger.error("Error fetching all users", e);
             return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @PatchMapping("/startup-status")
+    public ResponseEntity<?> updateStartupStatus(@RequestBody UpdateStartupStatusDto dto) {
+        try {
+            AppUser updated = userService.updateStartupStatus(dto.getUserId(), dto.getStartupStatus());
+
+            return ResponseEntity.ok(Map.of(
+                    "message", "Startup status updated successfully",
+                    "user", updated));
+        } catch (Exception e) {
+            logger.error("Error updating startup status", e);
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
 
@@ -160,6 +176,26 @@ public class UserController {
                     "profilePictureUrl", updatedUser.getProfilePictureUrl()));
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/admin-create")
+    public ResponseEntity<?> adminCreateUser(@RequestBody CreateUserDto dto) {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            AppUser currentUser = (AppUser) authentication.getPrincipal();
+
+            if (!"admin".equalsIgnoreCase(currentUser.getRole())) {
+                return ResponseEntity.status(403).body(Map.of("error", "Only admins can perform this action"));
+            }
+
+            AppUser newUser = userService.adminCreateUser(dto);
+            return ResponseEntity.ok(Map.of(
+                    "message", "User created successfully by admin",
+                    "userId", newUser.getId()));
+        } catch (Exception e) {
+            logger.error("Admin failed to create user", e);
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
 
