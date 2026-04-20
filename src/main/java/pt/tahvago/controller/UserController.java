@@ -24,6 +24,7 @@ import pt.tahvago.dto.BulkRoleUpdateDto;
 import pt.tahvago.dto.BulkStatusUpdateDto;
 import pt.tahvago.dto.ChangePasswordDto;
 import pt.tahvago.dto.CreateUserDto;
+import pt.tahvago.dto.PatchUserDto;
 import pt.tahvago.dto.UpdateStartupStatusDto;
 import pt.tahvago.dto.UpdateUserDto;
 import pt.tahvago.dto.UserDto;
@@ -239,4 +240,18 @@ public class UserController {
             return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
         }
     }
+
+    @PatchMapping("/patch")
+public ResponseEntity<?> patchUser(@RequestBody PatchUserDto dto) {
+    try {
+        AppUser updated = userService.patchUser(dto.getUserId(), dto.getUpdates());
+
+        return ResponseEntity.ok(Map.of(
+                "message", "User updated successfully",
+                "user", updated
+        ));
+    } catch (Exception e) {
+        return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+    }
+}
 }

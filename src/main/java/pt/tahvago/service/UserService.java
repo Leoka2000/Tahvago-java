@@ -8,6 +8,7 @@ import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -183,7 +184,35 @@ public void updateBulkRole(List<Long> userIds, String role) {
 public void deleteBulkUsers(List<Long> userIds) {
     userRepository.deleteAllById(userIds);
 }
+@Transactional
+public AppUser patchUser(Long userId, Map<String, Object> updates) {
+    AppUser user = userRepository.findById(userId)
+            .orElseThrow(() -> new RuntimeException("User not found"));
 
+    updates.forEach((key, value) -> {
+        switch (key) {
+            case "firstName" -> user.setFirstName((String) value);
+            case "lastName" -> user.setLastName((String) value);
+            case "fullName" -> user.setFullName((String) value);
+            case "email" -> {
+                Optional<AppUser> existing = userRepository.findByEmail((String) value);
+                if (existing.isPresent() && !existing.get().getId().equals(userId)) {
+                    throw new RuntimeException("Email already taken");
+                }
+                user.setEmail((String) value);
+            }
+            case "phone" -> user.setPhone((String) value);
+            case "role" -> user.setRole(((String) value).toLowerCase());
+            case "startupStatus" -> user.setStartupStatus(((String) value).toLowerCase());
+            case "username" -> user.setUsername((String) value);
+            case "taxId" -> user.setTaxId((String) value);
+            case "enabled" -> user.setEnabled((Boolean) value);
+            case "acceptedTerms" -> user.setAcceptedTerms((Boolean) value);
+        }
+    });
+
+    return userRepository.save(user);
+}
 @Transactional
 public AppUser updateStartupStatus(Long userId, String status) {
     AppUser user = userRepository.findById(userId)
