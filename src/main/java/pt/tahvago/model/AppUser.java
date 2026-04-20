@@ -2,16 +2,24 @@ package pt.tahvago.model;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
@@ -22,11 +30,23 @@ import lombok.Setter;
 @Setter
 public class AppUser implements UserDetails {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+   @Column(nullable = false)
+    private String firstName;
+
+    @Column(nullable = false)
+    private String lastName;
+
+    // We no longer need a separate column for fullName if we want it to be dynamic,
+    // but to keep your DB script and existing logic working exactly as is:
     @Column(nullable = false)
     private String fullName;
+   
+
+    @Column(nullable = true)
+    private String role = "user";
 
     @Column(unique = true, nullable = true)
     private String username;
@@ -35,7 +55,18 @@ public class AppUser implements UserDetails {
     private String profilePictureUrl;
 
     @Column(unique = true, nullable = false)
-    private String email;
+    private String email; 
+
+    @ManyToMany(fetch = FetchType.LAZY, cascade = { CascadeType.PERSIST, CascadeType.MERGE })
+    @JoinTable(
+        name = "user_conferences", 
+        joinColumns = @JoinColumn(name = "user_id"), 
+        inverseJoinColumns = @JoinColumn(name = "conference_id")
+    )
+    private Set<Conference> attendedConferences = new HashSet<>();
+
+    @Column(nullable = false)
+    private String startupStatus = "pending";
 
     @Column(nullable = false)
     private String password;
@@ -52,21 +83,20 @@ public class AppUser implements UserDetails {
     @Column(name = "verification_expiration")
     private LocalDateTime verificationCodeExpiresAt;
 
-    private boolean enabled;
+    private boolean enabled = false;
 
     @Column(name = "accepted_terms")
-    private Boolean acceptedTerms;
+    private Boolean acceptedTerms = false;
 
-    public AppUser(String fullName, String username, String email, String password, String phone) {
-        this.fullName = fullName;
-        this.username = username;
-        this.email = email;
-        this.password = password;
-        this.phone = phone;
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
     }
 
-    public AppUser() {
-    }
+    public AppUser() {}
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -79,22 +109,26 @@ public class AppUser implements UserDetails {
     }
 
     @Override
-    public boolean isAccountNonExpired() {
-        return true;
-    }
-
+    public boolean isAccountNonExpired() { return true; }
     @Override
-    public boolean isAccountNonLocked() {
-        return true;
-    }
-
+    public boolean isAccountNonLocked() { return true; }
     @Override
-    public boolean isCredentialsNonExpired() {
-        return true;
-    }
-
+    public boolean isCredentialsNonExpired() { return true; }
     @Override
-    public boolean isEnabled() {
-        return enabled;
-    }
+    public boolean isEnabled() { return enabled; }
+
+
+
+    public void setFullName(String fullName) {
+    this.fullName = fullName;
+    if (this.firstName == null || this.lastName == null) {
+        if (fullName != null && fullName.contains(" ")) {
+            String[] parts = fullName.split(" ", 2);
+            this.firstName = parts[0];
+            this.lastName = parts[1];
+        } else {
+            this.firstName = fullName;
+            this.lastName = "";
+        }
+    }}
 }
