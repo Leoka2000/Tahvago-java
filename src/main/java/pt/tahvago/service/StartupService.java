@@ -20,11 +20,11 @@ public class StartupService {
     private final StartupRepository startupRepository;
 
     @Transactional(readOnly = true)
-    public StartupResponse getStartupByUserId(Long userId) {
-        Startup startup = startupRepository.findByOwnerId(userId)
-                .orElseThrow(() -> new RuntimeException("Startup not found for this user"));
-        
-        return mapToResponse(startup);
+    public List<StartupResponse> getStartupsByUserId(Long userId) {
+        return startupRepository.findAllByOwnerId(userId)
+                .stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
     }
 
     @Transactional

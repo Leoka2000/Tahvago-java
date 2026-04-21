@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import lombok.RequiredArgsConstructor;
 import pt.tahvago.dto.StartupCreateRequest;
 import pt.tahvago.dto.StartupResponse;
+import pt.tahvago.dto.UserIdRequest;
 import pt.tahvago.model.AppUser;
 import pt.tahvago.service.StartupService;
 
@@ -42,8 +43,8 @@ public class StartupController {
                 HttpStatus.CREATED);
     }
 
-    @GetMapping("/my-startup")
-    public ResponseEntity<StartupResponse> getMyStartup() {
+    @GetMapping("/my-startups")
+    public ResponseEntity<List<StartupResponse>> getMyStartups() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (authentication == null || !(authentication.getPrincipal() instanceof AppUser)) {
@@ -51,11 +52,18 @@ public class StartupController {
         }
 
         AppUser currentUser = (AppUser) authentication.getPrincipal();
-        return ResponseEntity.ok(startupService.getStartupByUserId(currentUser.getId()));
+        return ResponseEntity.ok(startupService.getStartupsByUserId(currentUser.getId()));
     }
 
     @GetMapping
     public ResponseEntity<List<StartupResponse>> getAll() {
         return ResponseEntity.ok(startupService.getAllStartups());
+    }
+
+    @PostMapping("/by-user")
+    public ResponseEntity<List<StartupResponse>> getStartupsByUser(@RequestBody UserIdRequest request) {
+    
+        List<StartupResponse> startups = startupService.getStartupsByUserId(request.getUserId());
+        return ResponseEntity.ok(startups);
     }
 }
