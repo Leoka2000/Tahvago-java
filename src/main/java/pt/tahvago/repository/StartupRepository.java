@@ -10,4 +10,6 @@ import pt.tahvago.model.Startup;
 @Repository
 public interface StartupRepository extends JpaRepository<Startup, Long> {
     List<Startup> findAllByOwnerId(Long userId);
+    
+    boolean existsByOwnerId(Long userId);
 }

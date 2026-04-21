@@ -47,7 +47,7 @@ public class StartupService {
                 .country(request.getCountry())
                 .onEvaluation(true)
                 .accepted(false)
-                .owner(user) 
+                .owner(user)
                 .build();
 
         Startup saved = startupRepository.save(startup);
@@ -77,5 +77,10 @@ public class StartupService {
                 .onEvaluation(startup.getOnEvaluation())
                 .accepted(startup.getAccepted())
                 .build();
+    }
+
+    @Transactional(readOnly = true)
+    public boolean hasStartups(Long userId) {
+        return startupRepository.existsByOwnerId(userId);
     }
 }

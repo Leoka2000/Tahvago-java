@@ -38,6 +38,7 @@ public class AppUser implements UserDetails {
 
     @Column(nullable = false)
     private String lastName;
+    
 
     // We no longer need a separate column for fullName if we want it to be dynamic,
     // but to keep your DB script and existing logic working exactly as is:
