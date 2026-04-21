@@ -19,6 +19,7 @@ public class StartupService {
 
     private final StartupRepository startupRepository;
 
+    @Transactional(readOnly = true)
     public StartupResponse getStartupByUserId(Long userId) {
         Startup startup = startupRepository.findByOwnerId(userId)
                 .orElseThrow(() -> new RuntimeException("Startup not found for this user"));
@@ -44,6 +45,8 @@ public class StartupService {
                 .foundingYear(year)
                 .teamSize(request.getTeamSize())
                 .country(request.getCountry())
+                .onEvaluation(true)
+                .accepted(false)
                 .owner(user) 
                 .build();
 
@@ -71,6 +74,8 @@ public class StartupService {
                 .teamSize(startup.getTeamSize())
                 .country(startup.getCountry())
                 .userId(startup.getOwner().getId())
+                .onEvaluation(startup.getOnEvaluation())
+                .accepted(startup.getAccepted())
                 .build();
     }
 }

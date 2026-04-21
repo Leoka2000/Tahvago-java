@@ -16,4 +16,6 @@ public class StartupResponse {
     private Integer teamSize;
     private String country;
     private Long userId; 
+    private Boolean onEvaluation;
+    private Boolean accepted;
 }

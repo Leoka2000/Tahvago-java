@@ -41,9 +41,7 @@ public class Startup {
     private String description;
 
     private String website;
-
     private String industry;
-    
     private String stage;
 
     @Column(name = "founding_year")
@@ -54,16 +52,17 @@ public class Startup {
 
     private String country;
 
+    @Column(name = "on_evaluation")
+    private Boolean onEvaluation;
+
+    private Boolean accepted;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private AppUser owner;
 
     @ManyToMany(fetch = FetchType.LAZY, cascade = { CascadeType.PERSIST, CascadeType.MERGE })
-    @JoinTable(
-        name = "startup_conferences", 
-        joinColumns = @JoinColumn(name = "startup_id"), 
-        inverseJoinColumns = @JoinColumn(name = "conference_id")
-    )
+    @JoinTable(name = "startup_conferences", joinColumns = @JoinColumn(name = "startup_id"), inverseJoinColumns = @JoinColumn(name = "conference_id"))
     @Builder.Default
     private Set<Conference> attendedConferences = new HashSet<>();
 }
