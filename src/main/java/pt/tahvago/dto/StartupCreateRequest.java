@@ -12,4 +12,5 @@ public class StartupCreateRequest {
     private String foundingYear; 
     private Integer teamSize;
     private String country;
+    private String evaluationStage;
 }

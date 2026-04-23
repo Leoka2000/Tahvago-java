@@ -62,7 +62,6 @@ public class StartupController {
 
     @PostMapping("/by-user")
     public ResponseEntity<List<StartupResponse>> getStartupsByUser(@RequestBody UserIdRequest request) {
-    
         List<StartupResponse> startups = startupService.getStartupsByUserId(request.getUserId());
         return ResponseEntity.ok(startups);
     }

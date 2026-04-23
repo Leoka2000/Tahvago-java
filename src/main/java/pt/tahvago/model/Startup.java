@@ -45,7 +45,7 @@ public class Startup {
     private String stage;
 
     @Column(name = "founding_year")
-    private Integer foundingYear;
+    private String foundingYear;
 
     @Column(name = "team_size")
     private Integer teamSize;
@@ -56,6 +56,9 @@ public class Startup {
     private Boolean onEvaluation;
 
     private Boolean accepted;
+
+    @Column(name = "evaluation_stage")
+    private String evaluationStage;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)

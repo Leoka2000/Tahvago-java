@@ -37,9 +37,11 @@ public class SecurityConfiguration {
                             "/auth/**", 
                             "/api/auth/**", 
                             "/users/forgot-password", 
+                            
                             "/error",
                             "/uploads/**"
                         ).permitAll()
+                        .requestMatchers("/api/conferences/**").authenticated()
                         .anyRequest().authenticated())
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))

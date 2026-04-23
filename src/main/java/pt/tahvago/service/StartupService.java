@@ -2,10 +2,8 @@ package pt.tahvago.service;
 
 import java.util.List;
 import java.util.stream.Collectors;
-
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import lombok.RequiredArgsConstructor;
 import pt.tahvago.dto.StartupCreateRequest;
 import pt.tahvago.dto.StartupResponse;
@@ -29,24 +27,18 @@ public class StartupService {
 
     @Transactional
     public StartupResponse createStartup(StartupCreateRequest request, AppUser user) {
-        Integer year = null;
-        if (request.getFoundingYear() != null && request.getFoundingYear().contains("-")) {
-            year = Integer.parseInt(request.getFoundingYear().split("-")[0]);
-        } else if (request.getFoundingYear() != null && !request.getFoundingYear().isEmpty()) {
-            year = Integer.parseInt(request.getFoundingYear());
-        }
-
         Startup startup = Startup.builder()
                 .name(request.getName())
                 .description(request.getDescription())
                 .website(request.getWebsite())
                 .industry(request.getIndustry())
                 .stage(request.getStage())
-                .foundingYear(year)
+                .foundingYear(request.getFoundingYear())
                 .teamSize(request.getTeamSize())
                 .country(request.getCountry())
                 .onEvaluation(true)
                 .accepted(false)
+                .evaluationStage(request.getEvaluationStage())
                 .owner(user)
                 .build();
 
@@ -76,6 +68,7 @@ public class StartupService {
                 .userId(startup.getOwner().getId())
                 .onEvaluation(startup.getOnEvaluation())
                 .accepted(startup.getAccepted())
+                .evaluationStage(startup.getEvaluationStage())
                 .build();
     }
 

@@ -12,10 +12,11 @@ public class StartupResponse {
     private String website;
     private String industry;
     private String stage;
-    private Integer foundingYear;
+    private String foundingYear;
     private Integer teamSize;
     private String country;
     private Long userId; 
     private Boolean onEvaluation;
     private Boolean accepted;
+    private String evaluationStage;
 }

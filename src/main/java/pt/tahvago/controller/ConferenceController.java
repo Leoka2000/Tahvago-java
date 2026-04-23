@@ -31,8 +31,7 @@ public class ConferenceController {
     }
 
     @PostMapping("/check-existence")
-    public ResponseEntity<Boolean> checkUserHasStartups(@RequestBody UserIdRequest request) {
-        boolean exists = startupService.hasStartups(request.getUserId());
-        return ResponseEntity.ok(exists);
+    public ResponseEntity<Boolean> checkExistence(@RequestBody UserIdRequest request) {
+        return ResponseEntity.ok(startupService.hasStartups(request.getUserId()));
     }
 }
