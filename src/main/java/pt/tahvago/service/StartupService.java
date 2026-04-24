@@ -2,10 +2,13 @@ package pt.tahvago.service;
 
 import java.util.List;
 import java.util.stream.Collectors;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import lombok.RequiredArgsConstructor;
 import pt.tahvago.dto.StartupCreateRequest;
+import pt.tahvago.dto.StartupPatchRequest;
 import pt.tahvago.dto.StartupResponse;
 import pt.tahvago.model.AppUser;
 import pt.tahvago.model.Startup;
@@ -75,5 +78,27 @@ public class StartupService {
     @Transactional(readOnly = true)
     public boolean hasStartups(Long userId) {
         return startupRepository.existsByOwnerId(userId);
+    }
+
+    @Transactional
+    public StartupResponse updateEvaluationStage(Long id, String newStage) {
+        Startup startup = startupRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Startup not found with id: " + id));
+
+        startup.setEvaluationStage(newStage);
+
+        return mapToResponse(startupRepository.save(startup));
+    }
+
+    @Transactional
+    public StartupResponse patchStartup(Long id, StartupPatchRequest request) {
+        Startup startup = startupRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Startup not found with id: " + id));
+
+        if (request.getEvaluationStage() != null) {
+            startup.setEvaluationStage(request.getEvaluationStage());
+        }
+
+        return mapToResponse(startupRepository.save(startup));
     }
 }
