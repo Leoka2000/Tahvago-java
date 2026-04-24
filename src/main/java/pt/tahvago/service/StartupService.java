@@ -3,6 +3,7 @@ package pt.tahvago.service;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -88,6 +89,17 @@ public class StartupService {
         startup.setEvaluationStage(newStage);
 
         return mapToResponse(startupRepository.save(startup));
+    }
+    @Transactional
+    public void deleteStartup(Long startupId, AppUser currentUser) {
+        Startup startup = startupRepository.findById(startupId)
+                .orElseThrow(() -> new RuntimeException("Startup not found with id: " + startupId));
+
+        if (!startup.getOwner().getId().equals(currentUser.getId())) {
+            throw new AccessDeniedException("You do not have permission to delete this startup");
+        }
+
+        startupRepository.delete(startup);
     }
 
     @Transactional

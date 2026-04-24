@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -70,6 +71,11 @@ public class StartupController {
         return ResponseEntity.ok(startups);
     }
 
+    @PostMapping("/check-existence")
+    public ResponseEntity<Boolean> checkExistence(@RequestBody UserIdRequest request) {
+        return ResponseEntity.ok(startupService.hasStartups(request.getUserId()));
+    }
+
     @PostMapping("/{id}/evaluation-stage")
     public ResponseEntity<StartupResponse> updateEvaluationStage(
             @PathVariable Long id,
@@ -78,9 +84,23 @@ public class StartupController {
     }
 
     @PatchMapping("/{id}")
-public ResponseEntity<StartupResponse> patchStartup(
-        @PathVariable Long id,
-        @RequestBody StartupPatchRequest request) {
-    return ResponseEntity.ok(startupService.patchStartup(id, request));
-}
+    public ResponseEntity<StartupResponse> patchStartup(
+            @PathVariable Long id,
+            @RequestBody StartupPatchRequest request) {
+        return ResponseEntity.ok(startupService.patchStartup(id, request));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteStartup(@PathVariable Long id) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !(authentication.getPrincipal() instanceof AppUser)) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+
+        AppUser currentUser = (AppUser) authentication.getPrincipal();
+        startupService.deleteStartup(id, currentUser);
+
+        return ResponseEntity.noContent().build();
+    }
 }
