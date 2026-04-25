@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
+import pt.tahvago.dto.GetAllUsersStartups.StartupDetailsDto;
 import pt.tahvago.dto.StartupCreateRequest;
 import pt.tahvago.dto.StartupPatchRequest;
 import pt.tahvago.dto.StartupResponse;
@@ -123,4 +124,47 @@ public class StartupService {
 
         return mapToResponse(startupRepository.save(startup));
     }
+
+    @Transactional(readOnly = true)
+    public List<StartupResponse> getAllStartupsWithUserList() {
+        return startupRepository.findAll()
+                .stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+
+
+    @Transactional(readOnly = true)
+    public List<StartupDetailsDto> getAllStartupsList() {
+        return startupRepository.findAll()
+                .stream()
+                .map(this::mapToDetailsDto)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<StartupDetailsDto> getAllStartupsWithUser() {
+        return getAllStartupsList();
+    }
+
+    private StartupDetailsDto mapToDetailsDto(Startup startup) {
+        return StartupDetailsDto.builder()
+                .id(startup.getId())
+                .name(startup.getName())
+                .description(startup.getDescription())
+                .website(startup.getWebsite())
+                .industry(startup.getIndustry())
+                .stage(startup.getStage())
+                .foundingYear(startup.getFoundingYear())
+                .teamSize(startup.getTeamSize())
+                .country(startup.getCountry())
+                .creditBalance(startup.getCreditBalance())
+                .onEvaluation(startup.getOnEvaluation())
+                .accepted(startup.getAccepted())
+                .evaluationStage(startup.getEvaluationStage())
+                .userId(startup.getOwner() != null ? startup.getOwner().getId() : null)
+                .build();
+    }
+
+    
 }

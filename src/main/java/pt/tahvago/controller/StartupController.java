@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import lombok.RequiredArgsConstructor;
 import pt.tahvago.dto.EvaluationStageRequest;
+import pt.tahvago.dto.GetAllUsersStartups.StartupDetailsDto;
 import pt.tahvago.dto.StartupCreateRequest;
 import pt.tahvago.dto.StartupPatchRequest;
 import pt.tahvago.dto.StartupResponse;
@@ -102,5 +103,10 @@ public class StartupController {
         startupService.deleteStartup(id, currentUser);
 
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/all-details")
+    public ResponseEntity<List<StartupDetailsDto>> getAllStartupsDetails() {
+        return ResponseEntity.ok(startupService.getAllStartupsWithUser());
     }
 }
