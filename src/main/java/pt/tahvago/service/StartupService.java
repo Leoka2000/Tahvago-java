@@ -20,6 +20,7 @@ import pt.tahvago.repository.StartupRepository;
 public class StartupService {
 
     private final StartupRepository startupRepository;
+    private final NotificationService notificationService;
 
     @Transactional(readOnly = true)
     public List<StartupResponse> getStartupsByUserId(Long userId) {
@@ -40,14 +41,16 @@ public class StartupService {
                 .foundingYear(request.getFoundingYear())
                 .teamSize(request.getTeamSize())
                 .country(request.getCountry())
-                .creditBalance(100) // Manually set the balance here
                 .onEvaluation(true)
                 .accepted(false)
-                .evaluationStage(request.getEvaluationStage())
+                .evaluationStage("registered")
                 .owner(user)
                 .build();
 
         Startup saved = startupRepository.save(startup);
+
+        notificationService.createStageNotification(user, "registered");
+
         return mapToResponse(saved);
     }
 
@@ -88,8 +91,11 @@ public class StartupService {
                 .orElseThrow(() -> new RuntimeException("Startup not found with id: " + id));
 
         startup.setEvaluationStage(newStage);
+        Startup saved = startupRepository.save(startup);
 
-        return mapToResponse(startupRepository.save(startup));
+        notificationService.createStageNotification(startup.getOwner(), newStage);
+
+        return mapToResponse(saved);
     }
 
     @Transactional
@@ -110,7 +116,9 @@ public class StartupService {
                 .orElseThrow(() -> new RuntimeException("Startup not found with id: " + id));
 
         if (request.getEvaluationStage() != null) {
-            startup.setEvaluationStage(request.getEvaluationStage());
+            String newStage = request.getEvaluationStage();
+            startup.setEvaluationStage(newStage);
+            notificationService.createStageNotification(startup.getOwner(), newStage);
         }
 
         return mapToResponse(startupRepository.save(startup));

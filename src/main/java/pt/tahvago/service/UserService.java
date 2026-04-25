@@ -23,15 +23,16 @@ import pt.tahvago.repository.UserRepository;
 
 @Service
 public class UserService {
+    private final NotificationService notificationService;
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;
     private final String uploadDir = "uploads/profiles/";
 
-
-
-    public UserService(UserRepository userRepository, BCryptPasswordEncoder passwordEncoder) {
+    public UserService(UserRepository userRepository, BCryptPasswordEncoder passwordEncoder,
+            NotificationService notificationService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.notificationService = notificationService;
     }
 
     public List<AppUser> allUsers() {
@@ -137,113 +138,119 @@ public class UserService {
         System.out.println("Reset Link: " + resetLink);
     }
 
+    @Transactional
+    public AppUser deleteProfilePicture(Long userId) {
+        AppUser user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (user.getProfilePictureUrl() != null) {
+            try {
+                Path root = Paths.get(uploadDir);
+                String filename = user.getProfilePictureUrl().replace("/uploads/profiles/", "");
+                Path filePath = root.resolve(filename);
+
+                Files.deleteIfExists(filePath);
+            } catch (Exception e) {
+                System.err.println("Failed to delete file: " + e.getMessage());
+            }
+
+            user.setProfilePictureUrl(null);
+            return userRepository.save(user);
+        }
+
+        return user;
+    }
 
     @Transactional
-public AppUser deleteProfilePicture(Long userId) {
-    AppUser user = userRepository.findById(userId)
-            .orElseThrow(() -> new RuntimeException("User not found"));
+    public void updateBulkStatus(List<Long> userIds, String status) {
+        Iterable<AppUser> users = userRepository.findAllById(userIds);
+        users.forEach(user -> {
+            String newStatus = status.toLowerCase();
+            user.setStartupStatus(newStatus);
+            notificationService.createStageNotification(user, newStatus); // Trigger
+        });
+        userRepository.saveAll(users);
+    }
 
-    if (user.getProfilePictureUrl() != null) {
-        try {
-            Path root = Paths.get(uploadDir);
-            String filename = user.getProfilePictureUrl().replace("/uploads/profiles/", "");
-            Path filePath = root.resolve(filename);
-            
-            Files.deleteIfExists(filePath);
-        } catch (Exception e) {
-            System.err.println("Failed to delete file: " + e.getMessage());
-        }
+    @Transactional
+    public void updateBulkRole(List<Long> userIds, String role) {
+        Iterable<AppUser> users = userRepository.findAllById(userIds);
+        users.forEach(user -> {
+            user.setRole(role.toLowerCase());
+        });
+        userRepository.saveAll(users);
+    }
 
-        user.setProfilePictureUrl(null);
+    @Transactional
+    public void deleteBulkUsers(List<Long> userIds) {
+        userRepository.deleteAllById(userIds);
+    }
+
+    @Transactional
+    public AppUser patchUser(Long userId, Map<String, Object> updates) {
+        AppUser user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        updates.forEach((key, value) -> {
+            switch (key) {
+                case "firstName" -> user.setFirstName((String) value);
+                case "lastName" -> user.setLastName((String) value);
+                case "fullName" -> user.setFullName((String) value);
+                case "email" -> {
+                    Optional<AppUser> existing = userRepository.findByEmail((String) value);
+                    if (existing.isPresent() && !existing.get().getId().equals(userId)) {
+                        throw new RuntimeException("Email already taken");
+                    }
+                    user.setEmail((String) value);
+                }
+                case "phone" -> user.setPhone((String) value);
+                case "role" -> user.setRole(((String) value).toLowerCase());
+                case "startupStatus" -> {
+                    String newStatus = ((String) value).toLowerCase();
+                    user.setStartupStatus(newStatus);
+                    notificationService.createStageNotification(user, newStatus); // Trigger
+                }
+                case "username" -> user.setUsername((String) value);
+                case "taxId" -> user.setTaxId((String) value);
+                case "enabled" -> user.setEnabled((Boolean) value);
+                case "acceptedTerms" -> user.setAcceptedTerms((Boolean) value);
+            }
+        });
+
         return userRepository.save(user);
     }
-    
-    return user;
-}
 
+    @Transactional
+    public AppUser updateStartupStatus(Long userId, String status) {
+        AppUser user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
-@Transactional
-public void updateBulkStatus(List<Long> userIds, String status) {
-    Iterable<AppUser> users = userRepository.findAllById(userIds);
-    users.forEach(user -> {
-        user.setStartupStatus(status.toLowerCase());
-    });
-    userRepository.saveAll(users);
-}
+        String newStatus = status.toLowerCase();
+        user.setStartupStatus(newStatus);
+        notificationService.createStageNotification(user, newStatus); // Trigger
 
-@Transactional
-public void updateBulkRole(List<Long> userIds, String role) {
-    Iterable<AppUser> users = userRepository.findAllById(userIds);
-    users.forEach(user -> {
-        user.setRole(role.toLowerCase());
-    });
-    userRepository.saveAll(users);
-}
-
-@Transactional
-public void deleteBulkUsers(List<Long> userIds) {
-    userRepository.deleteAllById(userIds);
-}
-@Transactional
-public AppUser patchUser(Long userId, Map<String, Object> updates) {
-    AppUser user = userRepository.findById(userId)
-            .orElseThrow(() -> new RuntimeException("User not found"));
-
-    updates.forEach((key, value) -> {
-        switch (key) {
-            case "firstName" -> user.setFirstName((String) value);
-            case "lastName" -> user.setLastName((String) value);
-            case "fullName" -> user.setFullName((String) value);
-            case "email" -> {
-                Optional<AppUser> existing = userRepository.findByEmail((String) value);
-                if (existing.isPresent() && !existing.get().getId().equals(userId)) {
-                    throw new RuntimeException("Email already taken");
-                }
-                user.setEmail((String) value);
-            }
-            case "phone" -> user.setPhone((String) value);
-            case "role" -> user.setRole(((String) value).toLowerCase());
-            case "startupStatus" -> user.setStartupStatus(((String) value).toLowerCase());
-            case "username" -> user.setUsername((String) value);
-            case "taxId" -> user.setTaxId((String) value);
-            case "enabled" -> user.setEnabled((Boolean) value);
-            case "acceptedTerms" -> user.setAcceptedTerms((Boolean) value);
-        }
-    });
-
-    return userRepository.save(user);
-}
-@Transactional
-public AppUser updateStartupStatus(Long userId, String status) {
-    AppUser user = userRepository.findById(userId)
-            .orElseThrow(() -> new RuntimeException("User not found"));
-
-    user.setStartupStatus(status.toLowerCase());
-    return userRepository.save(user);
-}
-
-
-@Transactional
-public AppUser adminCreateUser(CreateUserDto dto) {
-    if (userRepository.findByEmail(dto.getEmail()).isPresent()) {
-        throw new RuntimeException("User with this email already exists.");
+        return userRepository.save(user);
     }
 
-    AppUser user = new AppUser();
-    user.setFirstName(dto.getFirstName());
-    user.setLastName(dto.getLastName());
-    user.setFullName(dto.getFirstName() + " " + dto.getLastName());
-    user.setEmail(dto.getEmail());
-    user.setPassword(passwordEncoder.encode(dto.getPassword()));
-    user.setPhone(dto.getPhone());
-    user.setTaxId(dto.getTaxId());
-    user.setRole("user");
-    user.setStartupStatus("on_evaluation");
-    user.setEnabled(true);
-    user.setAcceptedTerms(true);
+    @Transactional
+    public AppUser adminCreateUser(CreateUserDto dto) {
+        if (userRepository.findByEmail(dto.getEmail()).isPresent()) {
+            throw new RuntimeException("User with this email already exists.");
+        }
 
-    return userRepository.save(user);
+        AppUser user = new AppUser();
+        user.setFirstName(dto.getFirstName());
+        user.setLastName(dto.getLastName());
+        user.setFullName(dto.getFirstName() + " " + dto.getLastName());
+        user.setEmail(dto.getEmail());
+        user.setPassword(passwordEncoder.encode(dto.getPassword()));
+        user.setPhone(dto.getPhone());
+        user.setTaxId(dto.getTaxId());
+        user.setRole("user");
+        user.setStartupStatus("on_evaluation");
+        user.setEnabled(true);
+        user.setAcceptedTerms(true);
+
+        return userRepository.save(user);
+    }
 }
-}
-
-
