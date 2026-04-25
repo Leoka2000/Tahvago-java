@@ -238,7 +238,7 @@ public AppUser adminCreateUser(CreateUserDto dto) {
     user.setPhone(dto.getPhone());
     user.setTaxId(dto.getTaxId());
     user.setRole("user");
-    user.setStartupStatus("pending");
+    user.setStartupStatus("on_evaluation");
     user.setEnabled(true);
     user.setAcceptedTerms(true);
 

@@ -40,6 +40,7 @@ public class StartupService {
                 .foundingYear(request.getFoundingYear())
                 .teamSize(request.getTeamSize())
                 .country(request.getCountry())
+                .creditBalance(100) // Manually set the balance here
                 .onEvaluation(true)
                 .accepted(false)
                 .evaluationStage(request.getEvaluationStage())
@@ -90,6 +91,7 @@ public class StartupService {
 
         return mapToResponse(startupRepository.save(startup));
     }
+
     @Transactional
     public void deleteStartup(Long startupId, AppUser currentUser) {
         Startup startup = startupRepository.findById(startupId)

@@ -67,7 +67,7 @@ public class AppUser implements UserDetails {
     private Set<Conference> attendedConferences = new HashSet<>();
 
     @Column(nullable = false)
-    private String startupStatus = "pending";
+    private String startupStatus = "on_evaluation";
 
     @Column(nullable = false)
     private String password;

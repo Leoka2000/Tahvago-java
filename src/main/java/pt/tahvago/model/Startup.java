@@ -1,6 +1,7 @@
 package pt.tahvago.model;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import jakarta.persistence.CascadeType;
@@ -14,6 +15,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -52,6 +54,16 @@ public class Startup {
 
     private String country;
 
+    @Column(nullable = false)
+    @Builder.Default // Add this annotation here
+    private Integer creditBalance = 100;
+
+    @OneToMany(mappedBy = "startup", cascade = CascadeType.ALL)
+    private List<CreditTransaction> transactions;
+
+    @OneToMany(mappedBy = "receiver")
+    private List<StartupInteraction> receivedInteractions;
+
     @Column(name = "on_evaluation")
     private Boolean onEvaluation;
 
@@ -66,6 +78,6 @@ public class Startup {
 
     @ManyToMany(fetch = FetchType.LAZY, cascade = { CascadeType.PERSIST, CascadeType.MERGE })
     @JoinTable(name = "startup_conferences", joinColumns = @JoinColumn(name = "startup_id"), inverseJoinColumns = @JoinColumn(name = "conference_id"))
-    @Builder.Default
+    @Builder.Default // Ensure this is not null when using the builder
     private Set<Conference> attendedConferences = new HashSet<>();
 }
