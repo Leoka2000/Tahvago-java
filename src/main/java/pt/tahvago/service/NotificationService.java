@@ -1,8 +1,12 @@
 package pt.tahvago.service;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
+import pt.tahvago.dto.Notification.NotificationResponseDto;
 import pt.tahvago.model.AppUser;
 import pt.tahvago.model.Notification;
 import pt.tahvago.repository.NotificationRepository;
@@ -11,6 +15,18 @@ import pt.tahvago.repository.NotificationRepository;
 @RequiredArgsConstructor
 public class NotificationService {
     private final NotificationRepository notificationRepository;
+
+    public List<NotificationResponseDto> getNotificationsForUser(AppUser user) {
+        return notificationRepository.findByRecipientOrderByCreatedAtDesc(user)
+                .stream()
+                .map(n -> new NotificationResponseDto(
+                        n.getId(),
+                        n.getMessage(),
+                        n.isRead(),
+                        n.getCreatedAt()
+                ))
+                .collect(Collectors.toList());
+    }
 
     public void createStageNotification(AppUser user, String newStage) {
         String message = switch (newStage.toLowerCase()) {
