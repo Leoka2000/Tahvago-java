@@ -29,7 +29,7 @@ public class CreditTransaction {
     @JoinColumn(name = "startup_id", nullable = false)
     private Startup startup;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private Integer amount; // Positive for grants, negative for spending
 
     @Column(nullable = false)

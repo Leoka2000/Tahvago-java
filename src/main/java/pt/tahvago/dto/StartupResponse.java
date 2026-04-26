@@ -1,10 +1,14 @@
 package pt.tahvago.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class StartupResponse {
     private Long id;
     private String name;
@@ -13,11 +17,12 @@ public class StartupResponse {
     private String industry;
     private String stage;
     private String foundingYear;
+    private String companyLogo;
     private Integer teamSize;
     private String country;
-    private Long userId; 
+    private Integer creditBalance;
     private Boolean onEvaluation;
     private Boolean accepted;
-    private String companyLogo;
     private String evaluationStage;
+    private Long userId;
 }
