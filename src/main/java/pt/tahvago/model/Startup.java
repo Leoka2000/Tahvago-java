@@ -48,6 +48,8 @@ public class Startup {
 
     @Column(name = "founding_year")
     private String foundingYear;
+    @Column(name = "company_logo", nullable = true)
+    private String companyLogo;
 
     @Column(name = "team_size")
     private Integer teamSize;

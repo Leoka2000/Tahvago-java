@@ -18,5 +18,6 @@ public class StartupResponse {
     private Long userId; 
     private Boolean onEvaluation;
     private Boolean accepted;
+    private String companyLogo;
     private String evaluationStage;
 }

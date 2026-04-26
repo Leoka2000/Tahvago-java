@@ -169,7 +169,6 @@ public class UserController {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             AppUser currentUser = (AppUser) authentication.getPrincipal();
-
             AppUser updatedUser = userService.updateProfilePicture(currentUser.getId(), file);
 
             return ResponseEntity.ok(Map.of(

@@ -35,6 +35,9 @@ public class StartupInteraction {
     @Column(nullable = false)
     private String type; // INVITATION, PARTNERSHIP, MESSAGE
 
+    @Column(nullable = false)
+    private String title; 
+
     @Column(columnDefinition = "TEXT")
     private String content;
 
