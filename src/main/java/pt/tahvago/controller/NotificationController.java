@@ -40,7 +40,7 @@ public class NotificationController {
         return ResponseEntity.ok(notificationService.getNotificationsForUser(currentUser));
     }
 
-    @PatchMapping("/{id}/read")
+  @PatchMapping("/{id}/read")
     public ResponseEntity<Void> markAsRead(@PathVariable Long id) {
         Notification notification = notificationRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Notification not found"));
@@ -50,7 +50,7 @@ public class NotificationController {
         return ResponseEntity.ok().build();
     }
 
-    @DeleteMapping("/{id}")
+   @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteNotification(@PathVariable Long id) {
         notificationRepository.deleteById(id);
         return ResponseEntity.ok().build();
@@ -64,5 +64,28 @@ public class NotificationController {
                 .filter(n -> !n.isRead())
                 .count();
         return ResponseEntity.ok(count);
+    }
+
+    @PatchMapping("/mark-all-read")
+    public ResponseEntity<Void> markAllAsRead() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !(authentication.getPrincipal() instanceof AppUser)) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+
+        AppUser currentUser = (AppUser) authentication.getPrincipal();
+
+        List<Notification> unreadNotifications = notificationRepository.findByRecipientOrderByCreatedAtDesc(currentUser)
+                .stream()
+                .filter(n -> !n.isRead())
+                .toList();
+
+        if (!unreadNotifications.isEmpty()) {
+            unreadNotifications.forEach(n -> n.setRead(true));
+            notificationRepository.saveAll(unreadNotifications);
+        }
+
+        return ResponseEntity.ok().build();
     }
 }
