@@ -32,8 +32,8 @@ public class StartupInteraction {
     @JoinColumn(name = "receiver_startup_id", nullable = false)
     private Startup receiver;
 
-    @Column(nullable = false)
-    private String type; // INVITATION, PARTNERSHIP, MESSAGE
+    @Column(nullable = true)
+    private String type; 
 
     @Column(nullable = false)
     private String title; 

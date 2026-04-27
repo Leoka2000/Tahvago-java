@@ -8,7 +8,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.Getter;
@@ -16,31 +15,45 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "user_subscriptions")
+@Table(name = "memberships")
 @Getter
 @Setter
 @NoArgsConstructor
-public class UserSubscription {
+public class Membership {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(nullable = false)
     private Long id;
 
     @OneToOne
     @JoinColumn(name = "user_id", nullable = false)
     private AppUser user;
 
-    @ManyToOne
-    @JoinColumn(name = "tier_id", nullable = false)
-    private SubscriptionTier tier;
+    @Column(nullable = true)
+    private Integer tierLevel;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
+    private String tierName;
+
+    @Column(nullable = true)
+    private Double monthlyPrice;
+
+    @Column(nullable = true)
+    private Integer monthlyCreditAllotment;
+
+    @Column(length = 500, nullable = true)
+    private String description;
+
+    @Column(nullable = true)
     private LocalDateTime startDate;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private LocalDateTime nextBillingDate;
 
-    @Column(nullable = false)
-    private String status; // ACTIVE, CANCELLED, PAST_DUE
+    @Column(nullable = true)
+    private String status;
 
-    private String stripeSubscriptionId; // For external payment tracking
+    @Column(nullable = true)
+    private String stripeSubscriptionId;
 }
