@@ -4,10 +4,14 @@ import java.util.List;
 
 import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
 
 @Getter
 @Builder
-public class NotificationStartupsResponseDto{
-    private Long receiverId;
+@Setter
+public class NotificationStartupsResponseDto {
+
+    private Long notificationId;
+    private Long recipientId;
     private List<StartupResponse> startups;
 }

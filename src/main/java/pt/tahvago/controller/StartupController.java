@@ -181,7 +181,7 @@ public class StartupController {
     }
 
 
-  @PostMapping("/by-notification")
+ @PostMapping("/by-notification")
 public ResponseEntity<NotificationStartupsResponseDto> getStartupsByNotification(
         @RequestBody NotificationStartupsRequestDto request) {
 

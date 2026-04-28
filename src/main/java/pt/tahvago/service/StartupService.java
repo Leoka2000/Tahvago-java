@@ -245,30 +245,33 @@ public class StartupService {
     }
 
     @Transactional(readOnly = true)
-    public NotificationStartupsResponseDto getStartupsByNotificationId(Long notificationId) {
+public NotificationStartupsResponseDto getStartupsByNotificationId(Long notificationId) {
 
-        Notification notification = notificationRepository.findById(notificationId)
-                .orElseThrow(() -> new RuntimeException("Notification not found"));
+    Notification notification = notificationRepository.findById(notificationId)
+            .orElseThrow(() -> new RuntimeException("Notification not found"));
 
-        StartupInteraction interaction = notification.getRelatedInteraction();
+    StartupInteraction interaction = notification.getRelatedInteraction();
 
-        if (interaction == null) {
-            return NotificationStartupsResponseDto.builder()
-                    .receiverId(notification.getRecipient().getId())
-                    .startups(List.of())
-                    .build();
-        }
-
-        Startup sender = interaction.getSender();
-        Startup receiver = interaction.getReceiver();
-
-        List<StartupResponse> startups = List.of(
-                mapToResponse(sender),
-                mapToResponse(receiver));
-
+    if (interaction == null) {
         return NotificationStartupsResponseDto.builder()
-                .receiverId(notification.getRecipient().getId())
-                .startups(startups)
+                .notificationId(notification.getId())                 
+                .recipientId(notification.getRecipient().getId())    
+                .startups(List.of())
                 .build();
     }
+
+    Startup sender = interaction.getSender();
+    Startup receiver = interaction.getReceiver();
+
+    List<StartupResponse> startups = List.of(
+            mapToResponse(sender),
+            mapToResponse(receiver)
+    );
+
+    return NotificationStartupsResponseDto.builder()
+            .notificationId(notification.getId())                 
+            .recipientId(notification.getRecipient().getId())    
+            .startups(startups)
+            .build();
+}
 }
