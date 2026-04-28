@@ -252,26 +252,45 @@ public NotificationStartupsResponseDto getStartupsByNotificationId(Long notifica
 
     StartupInteraction interaction = notification.getRelatedInteraction();
 
+    Long recipientId = notification.getRecipient().getId();
+
+    List<StartupResponse> recipientStartups = startupRepository.findAllByOwnerId(recipientId)
+            .stream()
+            .map(this::mapToResponse)
+            .collect(Collectors.toList());
+
     if (interaction == null) {
         return NotificationStartupsResponseDto.builder()
-                .notificationId(notification.getId())                 
-                .recipientId(notification.getRecipient().getId())    
+                .notificationId(notification.getId())
+                .recipientId(recipientId)
+                .receiverStartupId(null)
                 .startups(List.of())
+                .recipientStartups(recipientStartups) // ✅ NEW
                 .build();
     }
 
     Startup sender = interaction.getSender();
     Startup receiver = interaction.getReceiver();
 
-    List<StartupResponse> startups = List.of(
+    List<StartupResponse> interactionStartups = List.of(
             mapToResponse(sender),
             mapToResponse(receiver)
     );
 
+    // 🔥 LOG EVERYTHING
+    System.out.println("=== NOTIFICATION DEBUG ===");
+    System.out.println("Notification ID: " + notificationId);
+    System.out.println("Recipient ID: " + recipientId);
+    System.out.println("Receiver Startup ID: " + receiver.getId());
+    System.out.println("Recipient Startups Count: " + recipientStartups.size());
+    System.out.println("Interaction Startups Count: 2");
+
     return NotificationStartupsResponseDto.builder()
-            .notificationId(notification.getId())                 
-            .recipientId(notification.getRecipient().getId())    
-            .startups(startups)
+            .notificationId(notification.getId())
+            .recipientId(recipientId)
+            .receiverStartupId(receiver.getId())
+            .startups(interactionStartups)
+            .recipientStartups(recipientStartups) 
             .build();
 }
 }

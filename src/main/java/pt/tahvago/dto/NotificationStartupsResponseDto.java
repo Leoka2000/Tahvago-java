@@ -6,12 +6,14 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
-@Getter
 @Builder
+@Getter
 @Setter
 public class NotificationStartupsResponseDto {
 
     private Long notificationId;
     private Long recipientId;
+    private Long receiverStartupId; 
     private List<StartupResponse> startups;
+    private List<StartupResponse> recipientStartups;
 }
