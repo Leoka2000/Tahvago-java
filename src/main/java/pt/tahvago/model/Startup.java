@@ -75,7 +75,7 @@ public class Startup {
     private String evaluationStage;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "owner_id", nullable = false)
     private AppUser owner;
 
     @OneToMany(mappedBy = "relatedStartup", cascade = CascadeType.ALL)

@@ -22,8 +22,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 import lombok.RequiredArgsConstructor;
 import pt.tahvago.dto.EvaluationStageRequest;
+
 import pt.tahvago.dto.GetAllUsersStartups.GetAllUsersStartupsDto;
-import pt.tahvago.dto.ReceiverIdRequestDto;
+import pt.tahvago.dto.Notification.NotificationStartupsRequestDto;
+import pt.tahvago.dto.NotificationStartupsResponseDto;
 import pt.tahvago.dto.StartupCreateRequest;
 import pt.tahvago.dto.StartupIdRequest;
 import pt.tahvago.dto.StartupPatchRequest;
@@ -31,7 +33,6 @@ import pt.tahvago.dto.StartupResponse;
 import pt.tahvago.dto.UserIdRequest;
 import pt.tahvago.model.AppUser;
 import pt.tahvago.service.StartupService;
-
 
 @RestController
 @RequestMapping("/api/startups")
@@ -75,8 +76,13 @@ public class StartupController {
 
     @PostMapping("/by-user")
     public ResponseEntity<List<StartupResponse>> getStartupsByUser(@RequestBody UserIdRequest request) {
-        List<StartupResponse> startups = startupService.getStartupsByUserId(request.getUserId());
-        return ResponseEntity.ok(startups);
+        if (request.getUserId() == null) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        List<StartupResponse> responses = startupService.getStartupsByUserId(request.getUserId());
+
+        return ResponseEntity.ok(responses);
     }
 
     @PostMapping("/check-existence")
@@ -117,7 +123,6 @@ public class StartupController {
         return ResponseEntity.ok(startupService.getAllStartupsWithUser());
     }
 
-
     @PatchMapping("/{id}/logo")
     public ResponseEntity<?> uploadLogo(@PathVariable Long id, @RequestParam("file") MultipartFile file) {
         try {
@@ -128,7 +133,7 @@ public class StartupController {
             }
 
             AppUser currentUser = (AppUser) authentication.getPrincipal();
-            
+
             StartupResponse response = startupService.updateStartupLogo(id, file, currentUser);
             return ResponseEntity.ok(response);
 
@@ -146,7 +151,7 @@ public class StartupController {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             AppUser currentUser = (AppUser) authentication.getPrincipal();
-            
+
             StartupResponse response = startupService.deleteStartupLogo(id, currentUser);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -154,27 +159,38 @@ public class StartupController {
         }
     }
 
-
-
     @GetMapping("/details-by-id")
     public ResponseEntity<StartupResponse> getStartupDetails(@RequestBody StartupIdRequest request) {
         if (request.getStartupId() == null) {
             return ResponseEntity.badRequest().build();
         }
-        
+
         StartupResponse startup = startupService.getStartupById(request.getStartupId());
         return ResponseEntity.ok(startup);
     }
 
+    @GetMapping("/details-by-id/{startupId}")
+    public ResponseEntity<StartupResponse> getStartupDetails(@PathVariable Long startupId) {
+
+        if (startupId == null) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        StartupResponse startup = startupService.getStartupById(startupId);
+        return ResponseEntity.ok(startup);
+    }
 
 
-    @PostMapping("/by-receiver")
-public ResponseEntity<List<StartupResponse>> getByReceiver(@RequestBody ReceiverIdRequestDto request) {
-    if (request.getReceiverId() == null) {
+  @PostMapping("/by-notification")
+public ResponseEntity<NotificationStartupsResponseDto> getStartupsByNotification(
+        @RequestBody NotificationStartupsRequestDto request) {
+
+    if (request.getNotificationId() == null) {
         return ResponseEntity.badRequest().build();
     }
-    
-    List<StartupResponse> responses = startupService.getStartupsByReceiverId(request.getReceiverId());
-    return ResponseEntity.ok(responses);
+
+    return ResponseEntity.ok(
+            startupService.getStartupsByNotificationId(request.getNotificationId())
+    );
 }
 }

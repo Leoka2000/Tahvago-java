@@ -19,6 +19,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import lombok.Getter;
@@ -33,17 +34,14 @@ public class AppUser implements UserDetails {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-   @Column(nullable = false)
+    @Column(nullable = false)
     private String firstName;
 
     @Column(nullable = false)
     private String lastName;
-    
 
-   
     @Column(nullable = false)
     private String fullName;
-   
 
     @Column(nullable = true)
     private String role = "user";
@@ -55,14 +53,10 @@ public class AppUser implements UserDetails {
     private String profilePictureUrl;
 
     @Column(unique = true, nullable = false)
-    private String email; 
+    private String email;
 
     @ManyToMany(fetch = FetchType.LAZY, cascade = { CascadeType.PERSIST, CascadeType.MERGE })
-    @JoinTable(
-        name = "user_conferences", 
-        joinColumns = @JoinColumn(name = "user_id"), 
-        inverseJoinColumns = @JoinColumn(name = "conference_id")
-    )
+    @JoinTable(name = "user_conferences", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "conference_id"))
     private Set<Conference> attendedConferences = new HashSet<>();
 
     @Column(nullable = false)
@@ -96,7 +90,8 @@ public class AppUser implements UserDetails {
         this.createdAt = LocalDateTime.now();
     }
 
-    public AppUser() {}
+    public AppUser() {
+    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -109,26 +104,39 @@ public class AppUser implements UserDetails {
     }
 
     @Override
-    public boolean isAccountNonExpired() { return true; }
-    @Override
-    public boolean isAccountNonLocked() { return true; }
-    @Override
-    public boolean isCredentialsNonExpired() { return true; }
-    @Override
-    public boolean isEnabled() { return enabled; }
+    public boolean isAccountNonExpired() {
+        return true;
+    }
 
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
 
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return enabled;
+    }
 
     public void setFullName(String fullName) {
-    this.fullName = fullName;
-    if (this.firstName == null || this.lastName == null) {
-        if (fullName != null && fullName.contains(" ")) {
-            String[] parts = fullName.split(" ", 2);
-            this.firstName = parts[0];
-            this.lastName = parts[1];
-        } else {
-            this.firstName = fullName;
-            this.lastName = "";
+        this.fullName = fullName;
+        if (this.firstName == null || this.lastName == null) {
+            if (fullName != null && fullName.contains(" ")) {
+                String[] parts = fullName.split(" ", 2);
+                this.firstName = parts[0];
+                this.lastName = parts[1];
+            } else {
+                this.firstName = fullName;
+                this.lastName = "";
+            }
         }
-    }}
+    }
+
+    @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Startup> startups;
 }

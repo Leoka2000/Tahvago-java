@@ -15,11 +15,16 @@ import org.springframework.web.multipart.MultipartFile;
 
 import lombok.RequiredArgsConstructor;
 import pt.tahvago.dto.GetAllUsersStartups.GetAllUsersStartupsDto;
+import pt.tahvago.dto.NotificationStartupsResponseDto;
+
 import pt.tahvago.dto.StartupCreateRequest;
 import pt.tahvago.dto.StartupPatchRequest;
 import pt.tahvago.dto.StartupResponse;
 import pt.tahvago.model.AppUser;
+import pt.tahvago.model.Notification;
 import pt.tahvago.model.Startup;
+import pt.tahvago.model.StartupInteraction;
+import pt.tahvago.repository.NotificationRepository;
 import pt.tahvago.repository.StartupRepository;
 
 @Service
@@ -28,8 +33,11 @@ public class StartupService {
 
     private final StartupRepository startupRepository;
     private final NotificationService notificationService;
+    private final NotificationRepository notificationRepository;
+
     private final String UPLOAD_DIR = "uploads/";
 
+    // ✅ GET ALL STARTUPS FOR USER (CORRECT)
     @Transactional(readOnly = true)
     public List<StartupResponse> getStartupsByUserId(Long userId) {
         return startupRepository.findAllByOwnerId(userId)
@@ -38,15 +46,9 @@ public class StartupService {
                 .collect(Collectors.toList());
     }
 
-    @Transactional(readOnly = true)
-    public StartupResponse getSingleStartupByUserId(Long userId) {
-        Startup startup = startupRepository.findByOwnerId(userId)
-                .orElseThrow(() -> new RuntimeException("Startup not found for this user"));
-        return mapToResponse(startup);
-    }
-
     @Transactional
     public StartupResponse createStartup(StartupCreateRequest request, AppUser user) {
+
         String yearStr = request.getFoundingYear();
         if (yearStr != null && yearStr.contains("-")) {
             yearStr = yearStr.split("-")[0];
@@ -69,37 +71,11 @@ public class StartupService {
 
         Startup saved = startupRepository.save(startup);
         notificationService.createStageNotification(user, "registered");
+
         return mapToResponse(saved);
     }
 
-    @Transactional
-    public StartupResponse updateStartupLogo(Long startupId, MultipartFile file, AppUser currentUser) {
-        Startup startup = startupRepository.findById(startupId)
-                .orElseThrow(() -> new RuntimeException("Startup not found"));
-
-        if (!startup.getOwner().getId().equals(currentUser.getId())) {
-            throw new AccessDeniedException("You do not own this startup");
-        }
-
-        try {
-            Path uploadPath = Paths.get(UPLOAD_DIR);
-            if (!Files.exists(uploadPath)) {
-                Files.createDirectories(uploadPath);
-            }
-
-            String fileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
-            Path filePath = uploadPath.resolve(fileName);
-            Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
-
-            String fileUrl = "/uploads/" + fileName;
-            startup.setCompanyLogo(fileUrl);
-
-            return mapToResponse(startupRepository.save(startup));
-        } catch (Exception e) {
-            throw new RuntimeException("Could not store file: " + e.getMessage());
-        }
-    }
-
+    // ✅ GET ALL
     @Transactional(readOnly = true)
     public List<StartupResponse> getAllStartups() {
         return startupRepository.findAll()
@@ -108,6 +84,7 @@ public class StartupService {
                 .collect(Collectors.toList());
     }
 
+    // ✅ GET WITH USER DETAILS
     @Transactional(readOnly = true)
     public List<GetAllUsersStartupsDto.StartupDetailsDto> getAllStartupsWithUser() {
         return startupRepository.findAll()
@@ -121,26 +98,25 @@ public class StartupService {
         return startupRepository.existsByOwnerId(userId);
     }
 
+    @Transactional(readOnly = true)
+    public StartupResponse getStartupById(Long id) {
+        Startup startup = startupRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Startup not found with id: " + id));
+
+        return mapToResponse(startup);
+    }
+
     @Transactional
     public StartupResponse updateEvaluationStage(Long id, String newStage) {
         Startup startup = startupRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Startup not found with id: " + id));
 
         startup.setEvaluationStage(newStage);
+
         Startup saved = startupRepository.save(startup);
         notificationService.createStageNotification(startup.getOwner(), newStage);
+
         return mapToResponse(saved);
-    }
-
-    @Transactional
-    public void deleteStartup(Long startupId, AppUser currentUser) {
-        Startup startup = startupRepository.findById(startupId)
-                .orElseThrow(() -> new RuntimeException("Startup not found with id: " + startupId));
-
-        if (!startup.getOwner().getId().equals(currentUser.getId())) {
-            throw new AccessDeniedException("You do not have permission to delete this startup");
-        }
-        startupRepository.delete(startup);
     }
 
     @Transactional
@@ -157,6 +133,76 @@ public class StartupService {
         return mapToResponse(startupRepository.save(startup));
     }
 
+    @Transactional
+    public void deleteStartup(Long startupId, AppUser currentUser) {
+        Startup startup = startupRepository.findById(startupId)
+                .orElseThrow(() -> new RuntimeException("Startup not found with id: " + startupId));
+
+        if (!startup.getOwner().getId().equals(currentUser.getId())) {
+            throw new AccessDeniedException("You do not have permission to delete this startup");
+        }
+
+        startupRepository.delete(startup);
+    }
+
+    // ✅ UPLOAD LOGO
+    @Transactional
+    public StartupResponse updateStartupLogo(Long startupId, MultipartFile file, AppUser currentUser) {
+
+        Startup startup = startupRepository.findById(startupId)
+                .orElseThrow(() -> new RuntimeException("Startup not found"));
+
+        if (!startup.getOwner().getId().equals(currentUser.getId())) {
+            throw new AccessDeniedException("You do not own this startup");
+        }
+
+        try {
+            Path uploadPath = Paths.get(UPLOAD_DIR);
+            if (!Files.exists(uploadPath)) {
+                Files.createDirectories(uploadPath);
+            }
+
+            String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
+            Path filePath = uploadPath.resolve(fileName);
+
+            Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+
+            startup.setCompanyLogo("/uploads/" + fileName);
+
+            return mapToResponse(startupRepository.save(startup));
+
+        } catch (Exception e) {
+            throw new RuntimeException("Could not store file: " + e.getMessage());
+        }
+    }
+
+    // ✅ DELETE LOGO
+    @Transactional
+    public StartupResponse deleteStartupLogo(Long startupId, AppUser currentUser) {
+
+        Startup startup = startupRepository.findById(startupId)
+                .orElseThrow(() -> new RuntimeException("Startup not found"));
+
+        if (!startup.getOwner().getId().equals(currentUser.getId())) {
+            throw new AccessDeniedException("You do not own this startup");
+        }
+
+        String logoPath = startup.getCompanyLogo();
+
+        if (logoPath != null) {
+            try {
+                Path filePath = Paths.get(logoPath.substring(1));
+                Files.deleteIfExists(filePath);
+            } catch (Exception e) {
+                System.err.println("Failed to delete file: " + e.getMessage());
+            }
+        }
+
+        startup.setCompanyLogo(null);
+        return mapToResponse(startupRepository.save(startup));
+    }
+
+    // ✅ SINGLE MAPPER (REMOVED DUPLICATES)
     private StartupResponse mapToResponse(Startup startup) {
         return StartupResponse.builder()
                 .id(startup.getId())
@@ -168,11 +214,12 @@ public class StartupService {
                 .foundingYear(startup.getFoundingYear())
                 .teamSize(startup.getTeamSize())
                 .country(startup.getCountry())
-                .userId(startup.getOwner().getId())
+                .creditBalance(startup.getCreditBalance())
                 .onEvaluation(startup.getOnEvaluation())
                 .accepted(startup.getAccepted())
                 .evaluationStage(startup.getEvaluationStage())
                 .companyLogo(startup.getCompanyLogo())
+                .userId(startup.getOwner().getId())
                 .build();
     }
 
@@ -194,67 +241,34 @@ public class StartupService {
                 .userId(startup.getOwner() != null ? startup.getOwner().getId() : null)
                 .companyLogo(startup.getCompanyLogo())
                 .build();
+
     }
 
-    @Transactional
-    public StartupResponse deleteStartupLogo(Long startupId, AppUser currentUser) {
-        Startup startup = startupRepository.findById(startupId)
-                .orElseThrow(() -> new RuntimeException("Startup not found"));
+    @Transactional(readOnly = true)
+    public NotificationStartupsResponseDto getStartupsByNotificationId(Long notificationId) {
 
-        if (!startup.getOwner().getId().equals(currentUser.getId())) {
-            throw new AccessDeniedException("You do not own this startup");
+        Notification notification = notificationRepository.findById(notificationId)
+                .orElseThrow(() -> new RuntimeException("Notification not found"));
+
+        StartupInteraction interaction = notification.getRelatedInteraction();
+
+        if (interaction == null) {
+            return NotificationStartupsResponseDto.builder()
+                    .receiverId(notification.getRecipient().getId())
+                    .startups(List.of())
+                    .build();
         }
 
-        String logoPath = startup.getCompanyLogo();
-        if (logoPath != null) {
-            try {
-                Path filePath = Paths.get(logoPath.substring(1));
-                Files.deleteIfExists(filePath);
-            } catch (Exception e) {
-                System.err.println("Failed to delete physical file: " + e.getMessage());
-            }
-        }
+        Startup sender = interaction.getSender();
+        Startup receiver = interaction.getReceiver();
 
-        startup.setCompanyLogo(null);
-        return mapToResponse(startupRepository.save(startup));
+        List<StartupResponse> startups = List.of(
+                mapToResponse(sender),
+                mapToResponse(receiver));
+
+        return NotificationStartupsResponseDto.builder()
+                .receiverId(notification.getRecipient().getId())
+                .startups(startups)
+                .build();
     }
-
-
-
-    public StartupResponse getStartupById(Long id) {
-    Startup startup = startupRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Startup not found with id: " + id));
-    
-    return convertToResponse(startup);
-}
-
-private StartupResponse convertToResponse(Startup startup) {
-    return StartupResponse.builder()
-            .id(startup.getId())
-            .name(startup.getName())
-            .description(startup.getDescription())
-            .website(startup.getWebsite())
-            .industry(startup.getIndustry())
-            .stage(startup.getStage())
-            .foundingYear(startup.getFoundingYear())
-            .companyLogo(startup.getCompanyLogo())
-            .teamSize(startup.getTeamSize())
-            .country(startup.getCountry())
-            .creditBalance(startup.getCreditBalance())
-            .onEvaluation(startup.getOnEvaluation())
-            .accepted(startup.getAccepted())
-            .evaluationStage(startup.getEvaluationStage())
-            .userId(startup.getOwner().getId())
-            .build();
-}
-
-
-public List<StartupResponse> getStartupsByReceiverId(Long receiverId) {
-    // Assuming receiverId is the AppUser ID who owns the startup
-    List<Startup> startups = startupRepository.findAllByOwnerId(receiverId);
-    
-    return startups.stream()
-            .map(this::convertToResponse)
-            .collect(Collectors.toList());
-}
 }
