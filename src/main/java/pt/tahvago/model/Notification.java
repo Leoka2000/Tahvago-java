@@ -13,7 +13,6 @@ import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
 @Entity
 @Table(name = "notifications")
 @Getter
@@ -28,6 +27,10 @@ public class Notification {
     @JoinColumn(name = "recipient_id", nullable = false)
     private AppUser recipient;
 
+    @ManyToOne
+    @JoinColumn(name = "startup_id")
+    private Startup relatedStartup;
+
     @Column(nullable = false)
     private String message;
 
@@ -37,7 +40,6 @@ public class Notification {
     @Column(nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
-    // Link back to the interaction that triggered this notification
     @ManyToOne
     @JoinColumn(name = "interaction_id")
     private StartupInteraction relatedInteraction;

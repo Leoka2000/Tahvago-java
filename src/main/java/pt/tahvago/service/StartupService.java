@@ -218,4 +218,33 @@ public class StartupService {
         startup.setCompanyLogo(null);
         return mapToResponse(startupRepository.save(startup));
     }
+
+
+
+    public StartupResponse getStartupById(Long id) {
+    Startup startup = startupRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Startup not found with id: " + id));
+    
+    return convertToResponse(startup);
+}
+
+private StartupResponse convertToResponse(Startup startup) {
+    return StartupResponse.builder()
+            .id(startup.getId())
+            .name(startup.getName())
+            .description(startup.getDescription())
+            .website(startup.getWebsite())
+            .industry(startup.getIndustry())
+            .stage(startup.getStage())
+            .foundingYear(startup.getFoundingYear())
+            .companyLogo(startup.getCompanyLogo())
+            .teamSize(startup.getTeamSize())
+            .country(startup.getCountry())
+            .creditBalance(startup.getCreditBalance())
+            .onEvaluation(startup.getOnEvaluation())
+            .accepted(startup.getAccepted())
+            .evaluationStage(startup.getEvaluationStage())
+            .userId(startup.getOwner().getId())
+            .build();
+}
 }

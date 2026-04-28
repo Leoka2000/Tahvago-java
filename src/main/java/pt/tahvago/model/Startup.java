@@ -78,6 +78,9 @@ public class Startup {
     @JoinColumn(name = "user_id", nullable = false)
     private AppUser owner;
 
+    @OneToMany(mappedBy = "relatedStartup", cascade = CascadeType.ALL)
+    private List<Notification> notifications;
+
     @ManyToMany(fetch = FetchType.LAZY, cascade = { CascadeType.PERSIST, CascadeType.MERGE })
     @JoinTable(name = "startup_conferences", joinColumns = @JoinColumn(name = "startup_id"), inverseJoinColumns = @JoinColumn(name = "conference_id"))
     @Builder.Default // Ensure this is not null when using the builder

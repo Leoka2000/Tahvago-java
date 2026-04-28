@@ -24,6 +24,7 @@ import lombok.RequiredArgsConstructor;
 import pt.tahvago.dto.EvaluationStageRequest;
 import pt.tahvago.dto.GetAllUsersStartups.GetAllUsersStartupsDto;
 import pt.tahvago.dto.StartupCreateRequest;
+import pt.tahvago.dto.StartupIdRequest;
 import pt.tahvago.dto.StartupPatchRequest;
 import pt.tahvago.dto.StartupResponse;
 import pt.tahvago.dto.UserIdRequest;
@@ -150,5 +151,17 @@ public class StartupController {
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
+    }
+
+
+
+    @GetMapping("/details-by-id")
+    public ResponseEntity<StartupResponse> getStartupDetails(@RequestBody StartupIdRequest request) {
+        if (request.getStartupId() == null) {
+            return ResponseEntity.badRequest().build();
+        }
+        
+        StartupResponse startup = startupService.getStartupById(request.getStartupId());
+        return ResponseEntity.ok(startup);
     }
 }
