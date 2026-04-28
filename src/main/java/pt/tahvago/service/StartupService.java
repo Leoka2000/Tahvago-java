@@ -247,4 +247,14 @@ private StartupResponse convertToResponse(Startup startup) {
             .userId(startup.getOwner().getId())
             .build();
 }
+
+
+public List<StartupResponse> getStartupsByReceiverId(Long receiverId) {
+    // Assuming receiverId is the AppUser ID who owns the startup
+    List<Startup> startups = startupRepository.findAllByOwnerId(receiverId);
+    
+    return startups.stream()
+            .map(this::convertToResponse)
+            .collect(Collectors.toList());
+}
 }

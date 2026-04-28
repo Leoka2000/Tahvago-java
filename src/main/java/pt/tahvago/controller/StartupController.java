@@ -23,6 +23,7 @@ import org.springframework.web.multipart.MultipartFile;
 import lombok.RequiredArgsConstructor;
 import pt.tahvago.dto.EvaluationStageRequest;
 import pt.tahvago.dto.GetAllUsersStartups.GetAllUsersStartupsDto;
+import pt.tahvago.dto.ReceiverIdRequestDto;
 import pt.tahvago.dto.StartupCreateRequest;
 import pt.tahvago.dto.StartupIdRequest;
 import pt.tahvago.dto.StartupPatchRequest;
@@ -164,4 +165,16 @@ public class StartupController {
         StartupResponse startup = startupService.getStartupById(request.getStartupId());
         return ResponseEntity.ok(startup);
     }
+
+
+
+    @PostMapping("/by-receiver")
+public ResponseEntity<List<StartupResponse>> getByReceiver(@RequestBody ReceiverIdRequestDto request) {
+    if (request.getReceiverId() == null) {
+        return ResponseEntity.badRequest().build();
+    }
+    
+    List<StartupResponse> responses = startupService.getStartupsByReceiverId(request.getReceiverId());
+    return ResponseEntity.ok(responses);
+}
 }
