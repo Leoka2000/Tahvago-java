@@ -1,5 +1,7 @@
 package pt.tahvago.controller;
 
+import java.util.Map;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +16,10 @@ public class MembershipController {
     private final MembershipService membershipService;
 
     @PostMapping("/assign/{userId}")
-    public ResponseEntity<Membership> assignMembership(@PathVariable Long userId, @RequestParam Integer tierLevel) {
+    public ResponseEntity<Membership> assignMembership(
+            @PathVariable Long userId,
+            @RequestBody Map<String, Integer> body) {
+        Integer tierLevel = body.get("tierLevel");
         return ResponseEntity.ok(membershipService.assignMembership(userId, tierLevel));
     }
 

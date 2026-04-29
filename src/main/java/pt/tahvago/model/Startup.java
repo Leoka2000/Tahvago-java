@@ -61,7 +61,7 @@ public class Startup {
 
     @Column(nullable = false)
     @Builder.Default
-    private Integer creditBalance = 100;
+    private Integer creditBalance = 500;
 
     @OneToMany(mappedBy = "startup", cascade = CascadeType.ALL)
     private List<CreditTransaction> transactions;
