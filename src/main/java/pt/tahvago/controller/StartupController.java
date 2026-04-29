@@ -179,17 +179,15 @@ public class StartupController {
         return ResponseEntity.ok(startup);
     }
 
+    @PostMapping("/by-notification")
+    public ResponseEntity<NotificationStartupsResponseDto> getStartupsByNotification(
+            @RequestBody NotificationStartupsRequestDto request) {
 
- @PostMapping("/by-notification")
-public ResponseEntity<NotificationStartupsResponseDto> getStartupsByNotification(
-        @RequestBody NotificationStartupsRequestDto request) {
+        if (request.getNotificationId() == null) {
+            return ResponseEntity.badRequest().build();
+        }
 
-    if (request.getNotificationId() == null) {
-        return ResponseEntity.badRequest().build();
+        return ResponseEntity.ok(
+                startupService.getStartupsByNotificationId(request.getNotificationId()));
     }
-
-    return ResponseEntity.ok(
-            startupService.getStartupsByNotificationId(request.getNotificationId())
-    );
-}
 }

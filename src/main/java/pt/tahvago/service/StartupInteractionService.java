@@ -74,7 +74,7 @@ public class StartupInteractionService {
                 .website(startup.getWebsite())
                 .industry(startup.getIndustry())
                 .stage(startup.getStage())
-                .foundingYear(startup.getFoundingYear())
+              
                 .companyLogo(startup.getCompanyLogo())
                 .teamSize(startup.getTeamSize())
                 .country(startup.getCountry())

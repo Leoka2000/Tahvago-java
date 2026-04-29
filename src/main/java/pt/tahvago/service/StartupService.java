@@ -69,12 +69,23 @@ public class StartupService {
                 .build();
 
         Startup saved = startupRepository.save(startup);
+
+        // ✅ CREATE NOTIFICATION LINKED TO USER + STARTUP
+        Notification notification = new Notification();
+        notification.setRecipient(user);
+        notification.setRelatedStartup(saved);
+        notification.setMessage("Startup created: " + saved.getName());
+        notification.setRead(false);
+
+        notificationRepository.save(notification);
+
+        // existing logic
         notificationService.createStageNotification(user, "registered");
 
         return mapToResponse(saved);
     }
 
-    //  GET ALL
+    // GET ALL
     @Transactional(readOnly = true)
     public List<StartupResponse> getAllStartups() {
         return startupRepository.findAll()
@@ -175,7 +186,7 @@ public class StartupService {
         }
     }
 
-    //  DELETE LOGO
+    // DELETE LOGO
     @Transactional
     public StartupResponse deleteStartupLogo(Long startupId, AppUser currentUser) {
 
@@ -201,7 +212,7 @@ public class StartupService {
         return mapToResponse(startupRepository.save(startup));
     }
 
-    //  SINGLE MAPPER (REMOVED DUPLICATES)
+    // SINGLE MAPPER (REMOVED DUPLICATES)
     private StartupResponse mapToResponse(Startup startup) {
         return StartupResponse.builder()
                 .id(startup.getId())
@@ -210,7 +221,7 @@ public class StartupService {
                 .website(startup.getWebsite())
                 .industry(startup.getIndustry())
                 .stage(startup.getStage())
-                .foundingYear(startup.getFoundingYear())
+
                 .teamSize(startup.getTeamSize())
                 .country(startup.getCountry())
                 .creditBalance(startup.getCreditBalance())
@@ -244,51 +255,50 @@ public class StartupService {
     }
 
     @Transactional(readOnly = true)
-public NotificationStartupsResponseDto getStartupsByNotificationId(Long notificationId) {
+    public NotificationStartupsResponseDto getStartupsByNotificationId(Long notificationId) {
 
-    Notification notification = notificationRepository.findById(notificationId)
-            .orElseThrow(() -> new RuntimeException("Notification not found"));
+        Notification notification = notificationRepository.findById(notificationId)
+                .orElseThrow(() -> new RuntimeException("Notification not found"));
 
-    StartupInteraction interaction = notification.getRelatedInteraction();
+        StartupInteraction interaction = notification.getRelatedInteraction();
 
-    Long recipientId = notification.getRecipient().getId();
+        Long recipientId = notification.getRecipient().getId();
 
-    List<StartupResponse> recipientStartups = startupRepository.findAllByOwnerId(recipientId)
-            .stream()
-            .map(this::mapToResponse)
-            .collect(Collectors.toList());
+        List<StartupResponse> recipientStartups = startupRepository.findAllByOwnerId(recipientId)
+                .stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
 
-    if (interaction == null) {
+        if (interaction == null) {
+            return NotificationStartupsResponseDto.builder()
+                    .notificationId(notification.getId())
+                    .recipientId(recipientId)
+                    .receiverStartupId(null)
+                    .startups(List.of())
+                    .recipientStartups(recipientStartups) // ✅ NEW
+                    .build();
+        }
+
+        Startup sender = interaction.getSender();
+        Startup receiver = interaction.getReceiver();
+
+        List<StartupResponse> interactionStartups = List.of(
+                mapToResponse(sender),
+                mapToResponse(receiver));
+
+        System.out.println("=== NOTIFICATION DEBUG ===");
+        System.out.println("Notification ID: " + notificationId);
+        System.out.println("Recipient ID: " + recipientId);
+        System.out.println("Receiver Startup ID: " + receiver.getId());
+        System.out.println("Recipient Startups Count: " + recipientStartups.size());
+        System.out.println("Interaction Startups Count: 2");
+
         return NotificationStartupsResponseDto.builder()
                 .notificationId(notification.getId())
                 .recipientId(recipientId)
-                .receiverStartupId(null)
-                .startups(List.of())
-                .recipientStartups(recipientStartups) // ✅ NEW
+                .receiverStartupId(receiver.getId())
+                .startups(interactionStartups)
+                .recipientStartups(recipientStartups)
                 .build();
     }
-
-    Startup sender = interaction.getSender();
-    Startup receiver = interaction.getReceiver();
-
-    List<StartupResponse> interactionStartups = List.of(
-            mapToResponse(sender),
-            mapToResponse(receiver)
-    );
-
-    System.out.println("=== NOTIFICATION DEBUG ===");
-    System.out.println("Notification ID: " + notificationId);
-    System.out.println("Recipient ID: " + recipientId);
-    System.out.println("Receiver Startup ID: " + receiver.getId());
-    System.out.println("Recipient Startups Count: " + recipientStartups.size());
-    System.out.println("Interaction Startups Count: 2");
-
-    return NotificationStartupsResponseDto.builder()
-            .notificationId(notification.getId())
-            .recipientId(recipientId)
-            .receiverStartupId(receiver.getId())
-            .startups(interactionStartups)
-            .recipientStartups(recipientStartups) 
-            .build();
-}
 }

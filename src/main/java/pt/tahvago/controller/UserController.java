@@ -25,6 +25,7 @@ import pt.tahvago.dto.User.BulkRoleUpdateDto;
 import pt.tahvago.dto.User.BulkStatusUpdateDto;
 import pt.tahvago.dto.User.ChangePasswordDto;
 import pt.tahvago.dto.User.CreateUserDto;
+import pt.tahvago.dto.User.FullUserProfileResponse;
 import pt.tahvago.dto.User.PatchUserDto;
 import pt.tahvago.dto.User.UpdateUserDto;
 import pt.tahvago.dto.User.UserDto;
@@ -38,10 +39,12 @@ public class UserController {
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
     private final UserService userService;
     private final JwtService jwtService;
+    
 
     public UserController(UserService userService, JwtService jwtService) {
         this.userService = userService;
         this.jwtService = jwtService;
+        
     }
 
     @PatchMapping("/bulk-role")
@@ -253,4 +256,6 @@ public ResponseEntity<?> patchUser(@RequestBody PatchUserDto dto) {
         return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
     }
 }
+
+ 
 }

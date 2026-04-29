@@ -9,6 +9,8 @@ import java.util.Set;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -63,6 +65,7 @@ public class AppUser implements UserDetails {
     private String startupStatus = "on_evaluation";
 
     @Column(nullable = false)
+    @JsonIgnore
     private String password;
 
     @Column(nullable = true)

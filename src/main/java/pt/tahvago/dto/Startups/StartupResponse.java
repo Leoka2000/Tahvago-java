@@ -16,7 +16,7 @@ public class StartupResponse {
     private String website;
     private String industry;
     private String stage;
-    private String foundingYear;
+    private String foundiyngYear;
     private String companyLogo;
     private Integer teamSize;
     private String country;

@@ -8,4 +8,5 @@ import pt.tahvago.model.Membership;
 @Repository
 public interface MembershipRepository extends CrudRepository<Membership, Long> {
     Optional<Membership> findByUserId(Long userId);
+    
 }
