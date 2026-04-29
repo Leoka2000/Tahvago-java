@@ -6,7 +6,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
-import pt.tahvago.dto.ConferenceDto;
+import pt.tahvago.dto.Conference.ConferenceDto;
 import pt.tahvago.model.Conference;
 import pt.tahvago.repository.ConferenceRepository;
 

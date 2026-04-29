@@ -6,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 
 import pt.tahvago.dto.Interactions.InteractionRequest;
 import pt.tahvago.dto.Interactions.InteractionResponse;
-import pt.tahvago.dto.StartupResponse;
+import pt.tahvago.dto.Startups.StartupResponse;
 import pt.tahvago.model.Notification;
 import pt.tahvago.model.Startup;
 import pt.tahvago.model.StartupInteraction;

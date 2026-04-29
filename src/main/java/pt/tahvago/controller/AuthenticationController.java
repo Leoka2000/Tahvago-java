@@ -1,5 +1,6 @@
 package pt.tahvago.controller;
 
+import java.time.LocalDateTime;
 import java.util.Map;
 
 import org.springframework.http.HttpStatus;
@@ -11,12 +12,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.servlet.http.HttpServletRequest;
-import pt.tahvago.dto.ForgotPasswordDto;
-import pt.tahvago.dto.LoginResponse;
-import pt.tahvago.dto.LoginUserDto;
-import pt.tahvago.dto.RegisterUserDto;
-import pt.tahvago.dto.ResetPasswordDto;
-import pt.tahvago.dto.VerifyUserDto;
+import pt.tahvago.dto.User.ForgotPasswordDto;
+import pt.tahvago.dto.User.LoginResponse;
+import pt.tahvago.dto.User.LoginUserDto;
+import pt.tahvago.dto.User.RegisterUserDto;
+import pt.tahvago.dto.User.ResetPasswordDto;
+import pt.tahvago.dto.User.VerifyResponse;
+import pt.tahvago.dto.User.VerifyUserDto;
 import pt.tahvago.exceptions.RegistrationException;
 import pt.tahvago.model.AppUser;
 import pt.tahvago.service.AuthenticationService;
@@ -88,12 +90,19 @@ public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordDto resetPasswo
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
         }
     }
-
-    @PostMapping("/verify")
+@PostMapping("/verify")
     public ResponseEntity<?> verifyUser(@RequestBody VerifyUserDto verifyUserDto) {
         try {
-            authenticationService.verifyUser(verifyUserDto);
-            return ResponseEntity.ok("Account verified successfully");
+            AppUser user = authenticationService.verifyUser(verifyUserDto);
+            String jwtToken = jwtService.generateToken(user);
+            
+            VerifyResponse response = new VerifyResponse(
+                jwtToken, 
+                jwtService.getExpirationTime(), 
+                "Account verified successfully"
+            );
+            
+            return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }

@@ -1,15 +1,7 @@
 package pt.tahvago.model;
 
 import java.time.LocalDateTime;
-
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -30,17 +22,17 @@ public class Membership {
     @JoinColumn(name = "user_id", nullable = false)
     private AppUser user;
 
-    @Column(nullable = true)
-    private Integer tierLevel;
+    @Column(nullable = false)
+    private Integer tierLevel = 0; 
 
     @Column(nullable = true)
-    private String tierName;
+    private String tierName = "Free Tier";
 
     @Column(nullable = true)
-    private Double monthlyPrice;
+    private Double monthlyPrice = 0.0;
 
-    @Column(nullable = true)
-    private Integer monthlyCreditAllotment;
+    @Column(nullable = false)
+    private Integer monthlyCreditAllotment = 500;
 
     @Column(length = 500, nullable = true)
     private String description;
@@ -52,8 +44,29 @@ public class Membership {
     private LocalDateTime nextBillingDate;
 
     @Column(nullable = true)
-    private String status;
+    private String status = "active";
 
     @Column(nullable = true)
     private String stripeSubscriptionId;
+
+    public static Membership createFreeTier(AppUser user) {
+        Membership membership = new Membership();
+        membership.setUser(user);
+        membership.setTierLevel(0);
+        membership.setTierName("Free Tier");
+        membership.setMonthlyCreditAllotment(500);
+        membership.setMonthlyPrice(0.0);
+        membership.setStatus("active");
+        return membership;
+    }
+
+    @PrePersist
+    protected void onCreate() {
+        if (this.startDate == null) {
+            this.startDate = LocalDateTime.now();
+        }
+        if (this.nextBillingDate == null) {
+            this.nextBillingDate = LocalDateTime.now().plusMonths(1);
+        }
+    }
 }

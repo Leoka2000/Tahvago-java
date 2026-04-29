@@ -13,10 +13,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import jakarta.mail.MessagingException;
-import pt.tahvago.dto.LoginUserDto;
-import pt.tahvago.dto.RegisterUserDto;
-import pt.tahvago.dto.ResetPasswordDto;
-import pt.tahvago.dto.VerifyUserDto;
+import pt.tahvago.dto.User.LoginUserDto;
+import pt.tahvago.dto.User.RegisterUserDto;
+import pt.tahvago.dto.User.ResetPasswordDto;
+import pt.tahvago.dto.User.VerifyUserDto;
 import pt.tahvago.exceptions.RegistrationException;
 import pt.tahvago.model.AppUser;
 import pt.tahvago.repository.UserRepository;
@@ -43,30 +43,30 @@ public class AuthenticationService {
         this.emailService = emailService;
     }
 
-   public AppUser signup(RegisterUserDto input) {
-    if (userRepository.findByEmail(input.getEmail()).isPresent()) {
-        throw new RegistrationException("Email already exists");
+    public AppUser signup(RegisterUserDto input) {
+        if (userRepository.findByEmail(input.getEmail()).isPresent()) {
+            throw new RegistrationException("Email already exists");
+        }
+
+        AppUser user = new AppUser();
+        // Set individual fields
+        user.setFirstName(input.getFirstName());
+        user.setLastName(input.getLastName());
+
+        // Construct fullName so the DB column isn't null
+        user.setFullName(input.getFirstName() + " " + input.getLastName());
+
+        user.setEmail(input.getEmail());
+        user.setPassword(passwordEncoder.encode(input.getPassword()));
+
+        user.setUsername(input.getEmail());
+        user.setEnabled(false);
+        user.setVerificationCode(generateVerificationCode());
+        user.setVerificationCodeExpiresAt(LocalDateTime.now().plusMinutes(15));
+
+        sendVerificationEmail(user);
+        return userRepository.save(user);
     }
-
-    AppUser user = new AppUser();
-    // Set individual fields
-    user.setFirstName(input.getFirstName());
-    user.setLastName(input.getLastName());
-    
-    // Construct fullName so the DB column isn't null
-    user.setFullName(input.getFirstName() + " " + input.getLastName());
-    
-    user.setEmail(input.getEmail());
-    user.setPassword(passwordEncoder.encode(input.getPassword()));
-    
-    user.setUsername(input.getEmail());
-    user.setEnabled(false);
-    user.setVerificationCode(generateVerificationCode());
-    user.setVerificationCodeExpiresAt(LocalDateTime.now().plusMinutes(15));
-
-    sendVerificationEmail(user);
-    return userRepository.save(user);
-}
 
     public void forgotPassword(String email) {
         AppUser user = userRepository.findByEmail(email)
@@ -135,9 +135,11 @@ public class AuthenticationService {
 
     private boolean isBlocked(String ip) {
         LockoutInfo info = lockoutCache.get(ip);
-        if (info == null) return false;
+        if (info == null)
+            return false;
         if (info.attempts >= MAX_ATTEMPTS) {
-            if (LocalDateTime.now().isBefore(info.lockoutEndTime)) return true;
+            if (LocalDateTime.now().isBefore(info.lockoutEndTime))
+                return true;
             lockoutCache.remove(ip);
         }
         return false;
@@ -157,7 +159,7 @@ public class AuthenticationService {
         LocalDateTime lockoutEndTime = LocalDateTime.now();
     }
 
-    public void verifyUser(VerifyUserDto input) {
+   public AppUser verifyUser(VerifyUserDto input) {
         Optional<AppUser> optionalUser = userRepository.findByEmail(input.getEmail());
         if (optionalUser.isPresent()) {
             AppUser user = optionalUser.get();
@@ -168,7 +170,7 @@ public class AuthenticationService {
                 user.setEnabled(true);
                 user.setVerificationCode(null);
                 user.setVerificationCodeExpiresAt(null);
-                userRepository.save(user);
+                return userRepository.save(user);
             } else {
                 throw new RuntimeException("Invalid verification code");
             }
@@ -234,7 +236,4 @@ public class AuthenticationService {
         userRepository.save(user);
     }
 
-
-
-    
 }

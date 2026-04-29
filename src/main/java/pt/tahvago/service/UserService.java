@@ -17,8 +17,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import pt.tahvago.dto.CreateUserDto;
+import pt.tahvago.dto.User.CreateUserDto;
 import pt.tahvago.model.AppUser;
+import pt.tahvago.model.Membership;
+import pt.tahvago.repository.MembershipRepository;
 import pt.tahvago.repository.UserRepository;
 
 @Service
@@ -26,13 +28,15 @@ public class UserService {
     private final NotificationService notificationService;
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;
+    private final MembershipRepository membershipRepository;
     private final String uploadDir = "uploads/profiles/";
 
     public UserService(UserRepository userRepository, BCryptPasswordEncoder passwordEncoder,
-            NotificationService notificationService) {
+            NotificationService notificationService, MembershipRepository membershipRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.notificationService = notificationService;
+        this.membershipRepository = membershipRepository;
     }
 
     public List<AppUser> allUsers() {
@@ -167,7 +171,7 @@ public class UserService {
         users.forEach(user -> {
             String newStatus = status.toLowerCase();
             user.setStartupStatus(newStatus);
-            notificationService.createStageNotification(user, newStatus); // Trigger
+            notificationService.createStageNotification(user, newStatus);
         });
         userRepository.saveAll(users);
     }
@@ -208,7 +212,7 @@ public class UserService {
                 case "startupStatus" -> {
                     String newStatus = ((String) value).toLowerCase();
                     user.setStartupStatus(newStatus);
-                    notificationService.createStageNotification(user, newStatus); // Trigger
+                    notificationService.createStageNotification(user, newStatus);
                 }
                 case "username" -> user.setUsername((String) value);
                 case "taxId" -> user.setTaxId((String) value);
@@ -227,7 +231,7 @@ public class UserService {
 
         String newStatus = status.toLowerCase();
         user.setStartupStatus(newStatus);
-        notificationService.createStageNotification(user, newStatus); // Trigger
+        notificationService.createStageNotification(user, newStatus);
 
         return userRepository.save(user);
     }
@@ -251,6 +255,11 @@ public class UserService {
         user.setEnabled(true);
         user.setAcceptedTerms(true);
 
-        return userRepository.save(user);
+        AppUser savedUser = userRepository.save(user);
+
+        Membership freeMembership = Membership.createFreeTier(savedUser);
+        membershipRepository.save(freeMembership);
+
+        return savedUser;
     }
 }

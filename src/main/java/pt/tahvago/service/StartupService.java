@@ -14,12 +14,11 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import lombok.RequiredArgsConstructor;
-import pt.tahvago.dto.GetAllUsersStartups.GetAllUsersStartupsDto;
-import pt.tahvago.dto.NotificationStartupsResponseDto;
-
-import pt.tahvago.dto.StartupCreateRequest;
-import pt.tahvago.dto.StartupPatchRequest;
-import pt.tahvago.dto.StartupResponse;
+import pt.tahvago.dto.Notification.NotificationStartupsResponseDto;
+import pt.tahvago.dto.Startups.GetAllUsersStartupsDto;
+import pt.tahvago.dto.Startups.StartupCreateRequest;
+import pt.tahvago.dto.Startups.StartupPatchRequest;
+import pt.tahvago.dto.Startups.StartupResponse;
 import pt.tahvago.model.AppUser;
 import pt.tahvago.model.Notification;
 import pt.tahvago.model.Startup;
@@ -75,7 +74,7 @@ public class StartupService {
         return mapToResponse(saved);
     }
 
-    // ✅ GET ALL
+    //  GET ALL
     @Transactional(readOnly = true)
     public List<StartupResponse> getAllStartups() {
         return startupRepository.findAll()
@@ -84,7 +83,7 @@ public class StartupService {
                 .collect(Collectors.toList());
     }
 
-    // ✅ GET WITH USER DETAILS
+    // GET WITH USER DETAILS
     @Transactional(readOnly = true)
     public List<GetAllUsersStartupsDto.StartupDetailsDto> getAllStartupsWithUser() {
         return startupRepository.findAll()
@@ -145,7 +144,7 @@ public class StartupService {
         startupRepository.delete(startup);
     }
 
-    // ✅ UPLOAD LOGO
+    // UPLOAD LOGO
     @Transactional
     public StartupResponse updateStartupLogo(Long startupId, MultipartFile file, AppUser currentUser) {
 
@@ -176,7 +175,7 @@ public class StartupService {
         }
     }
 
-    // ✅ DELETE LOGO
+    //  DELETE LOGO
     @Transactional
     public StartupResponse deleteStartupLogo(Long startupId, AppUser currentUser) {
 
@@ -202,7 +201,7 @@ public class StartupService {
         return mapToResponse(startupRepository.save(startup));
     }
 
-    // ✅ SINGLE MAPPER (REMOVED DUPLICATES)
+    //  SINGLE MAPPER (REMOVED DUPLICATES)
     private StartupResponse mapToResponse(Startup startup) {
         return StartupResponse.builder()
                 .id(startup.getId())
@@ -277,7 +276,6 @@ public NotificationStartupsResponseDto getStartupsByNotificationId(Long notifica
             mapToResponse(receiver)
     );
 
-    // 🔥 LOG EVERYTHING
     System.out.println("=== NOTIFICATION DEBUG ===");
     System.out.println("Notification ID: " + notificationId);
     System.out.println("Recipient ID: " + recipientId);

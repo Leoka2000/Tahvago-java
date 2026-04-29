@@ -21,16 +21,15 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import lombok.RequiredArgsConstructor;
-import pt.tahvago.dto.EvaluationStageRequest;
-
-import pt.tahvago.dto.GetAllUsersStartups.GetAllUsersStartupsDto;
 import pt.tahvago.dto.Notification.NotificationStartupsRequestDto;
-import pt.tahvago.dto.NotificationStartupsResponseDto;
-import pt.tahvago.dto.StartupCreateRequest;
-import pt.tahvago.dto.StartupIdRequest;
-import pt.tahvago.dto.StartupPatchRequest;
-import pt.tahvago.dto.StartupResponse;
-import pt.tahvago.dto.UserIdRequest;
+import pt.tahvago.dto.Notification.NotificationStartupsResponseDto;
+import pt.tahvago.dto.Startups.EvaluationStageRequest;
+import pt.tahvago.dto.Startups.GetAllUsersStartupsDto;
+import pt.tahvago.dto.Startups.StartupCreateRequest;
+import pt.tahvago.dto.Startups.StartupIdRequest;
+import pt.tahvago.dto.Startups.StartupPatchRequest;
+import pt.tahvago.dto.Startups.StartupResponse;
+import pt.tahvago.dto.User.UserIdRequest;
 import pt.tahvago.model.AppUser;
 import pt.tahvago.service.StartupService;
 

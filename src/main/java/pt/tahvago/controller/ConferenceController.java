@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import lombok.RequiredArgsConstructor;
-import pt.tahvago.dto.ConferenceDto;
+import pt.tahvago.dto.Conference.ConferenceDto;
 import pt.tahvago.service.ConferenceService;
 
 @RestController

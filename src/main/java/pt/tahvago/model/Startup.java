@@ -1,5 +1,6 @@
 package pt.tahvago.model;
 
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -16,6 +17,8 @@ import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -57,7 +60,7 @@ public class Startup {
     private String country;
 
     @Column(nullable = false)
-    @Builder.Default // Add this annotation here
+    @Builder.Default
     private Integer creditBalance = 100;
 
     @OneToMany(mappedBy = "startup", cascade = CascadeType.ALL)
@@ -83,6 +86,22 @@ public class Startup {
 
     @ManyToMany(fetch = FetchType.LAZY, cascade = { CascadeType.PERSIST, CascadeType.MERGE })
     @JoinTable(name = "startup_conferences", joinColumns = @JoinColumn(name = "startup_id"), inverseJoinColumns = @JoinColumn(name = "conference_id"))
-    @Builder.Default // Ensure this is not null when using the builder
+    @Builder.Default
     private Set<Conference> attendedConferences = new HashSet<>();
+
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
 }
