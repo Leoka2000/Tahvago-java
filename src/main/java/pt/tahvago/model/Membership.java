@@ -15,15 +15,15 @@ public class Membership {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(nullable = false)
     private Long id;
 
+    // ✅ THIS IS THE FK OWNER SIDE
     @OneToOne
     @JoinColumn(name = "user_id", nullable = false)
     private AppUser user;
 
     @Column(nullable = false)
-    private Integer tierLevel = 0; 
+    private Integer tierLevel = 0;
 
     @Column(nullable = true)
     private String tierName = "Free Tier";
@@ -34,9 +34,6 @@ public class Membership {
     @Column(nullable = false)
     private Integer monthlyCreditAllotment = 500;
 
-    @Column(length = 500, nullable = true)
-    private String description;
-
     @Column(nullable = true)
     private LocalDateTime startDate;
 
@@ -46,27 +43,22 @@ public class Membership {
     @Column(nullable = true)
     private String status = "active";
 
-    @Column(nullable = true)
-    private String stripeSubscriptionId;
-
     public static Membership createFreeTier(AppUser user) {
-        Membership membership = new Membership();
-        membership.setUser(user);
-        membership.setTierLevel(0);
-        membership.setTierName("Free Tier");
-        membership.setMonthlyCreditAllotment(500);
-        membership.setMonthlyPrice(0.0);
-        membership.setStatus("active");
-        return membership;
+        Membership m = new Membership();
+        m.setUser(user); // ✅ SET FK
+        m.setTierLevel(0);
+        m.setTierName("Free Tier");
+        m.setMonthlyCreditAllotment(500);
+        m.setMonthlyPrice(0.0);
+        m.setStatus("active");
+        return m;
     }
 
     @PrePersist
     protected void onCreate() {
-        if (this.startDate == null) {
-            this.startDate = LocalDateTime.now();
-        }
-        if (this.nextBillingDate == null) {
-            this.nextBillingDate = LocalDateTime.now().plusMonths(1);
-        }
+        if (startDate == null)
+            startDate = LocalDateTime.now();
+        if (nextBillingDate == null)
+            nextBillingDate = LocalDateTime.now().plusMonths(1);
     }
 }

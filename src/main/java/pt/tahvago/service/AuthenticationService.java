@@ -19,6 +19,8 @@ import pt.tahvago.dto.User.ResetPasswordDto;
 import pt.tahvago.dto.User.VerifyUserDto;
 import pt.tahvago.exceptions.RegistrationException;
 import pt.tahvago.model.AppUser;
+import pt.tahvago.model.Membership;
+import pt.tahvago.repository.MembershipRepository;
 import pt.tahvago.repository.UserRepository;
 
 @Service
@@ -26,6 +28,8 @@ public class AuthenticationService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
+    private final MembershipRepository membershipRepository;
+
     private final EmailService emailService;
 
     private final Map<String, LockoutInfo> lockoutCache = new ConcurrentHashMap<>();
@@ -34,6 +38,7 @@ public class AuthenticationService {
 
     public AuthenticationService(
             UserRepository userRepository,
+            MembershipRepository membershipRepository,
             AuthenticationManager authenticationManager,
             PasswordEncoder passwordEncoder,
             EmailService emailService) {
@@ -41,6 +46,7 @@ public class AuthenticationService {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.emailService = emailService;
+        this.membershipRepository = membershipRepository;
     }
 
     public AppUser signup(RegisterUserDto input) {
@@ -159,24 +165,44 @@ public class AuthenticationService {
         LocalDateTime lockoutEndTime = LocalDateTime.now();
     }
 
-   public AppUser verifyUser(VerifyUserDto input) {
-        Optional<AppUser> optionalUser = userRepository.findByEmail(input.getEmail());
-        if (optionalUser.isPresent()) {
-            AppUser user = optionalUser.get();
-            if (user.getVerificationCodeExpiresAt().isBefore(LocalDateTime.now())) {
-                throw new RuntimeException("Verification code has expired");
-            }
-            if (user.getVerificationCode().equals(input.getVerificationCode())) {
-                user.setEnabled(true);
-                user.setVerificationCode(null);
-                user.setVerificationCodeExpiresAt(null);
-                return userRepository.save(user);
-            } else {
-                throw new RuntimeException("Invalid verification code");
-            }
-        } else {
-            throw new RuntimeException("User not found");
-        }
+    public AppUser verifyUser(VerifyUserDto dto) {
+    if (dto.getEmail() == null || dto.getEmail().trim().isEmpty()) {
+        throw new RuntimeException("Email is required for verification");
+    }
+    
+    if (dto.getCode() == null || dto.getCode().trim().isEmpty()) {
+        throw new RuntimeException("Verification code cannot be empty");
+    }
+
+    AppUser user = userRepository.findByEmail(dto.getEmail())
+            .orElseThrow(() -> new RuntimeException("User not found with email: " + dto.getEmail()));
+
+    if (user.getVerificationCode() == null || !user.getVerificationCode().equals(dto.getCode())) {
+        throw new RuntimeException("Invalid verification code");
+    }
+
+    if (user.getVerificationCodeExpiresAt() == null ||
+            user.getVerificationCodeExpiresAt().isBefore(LocalDateTime.now())) {
+        throw new RuntimeException("Verification code expired");
+    }
+
+    user.setEnabled(true);
+    user.setVerificationCode(null);
+    user.setVerificationCodeExpiresAt(null);
+    
+    user = userRepository.save(user);
+
+    if (membershipRepository.findByUserId(user.getId()).isEmpty()) {
+        Membership membership = Membership.createFreeTier(user);
+        membership.setUser(user);
+        membershipRepository.save(membership);
+        user.setMembership(membership);
+    }
+
+    return user;
+}
+    private String generateVerificationCodeString() {
+        return String.valueOf(new Random().nextInt(900000) + 100000);
     }
 
     public void resendVerificationCode(String email) {

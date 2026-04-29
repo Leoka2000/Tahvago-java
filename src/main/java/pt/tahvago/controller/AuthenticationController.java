@@ -24,7 +24,6 @@ import pt.tahvago.model.AppUser;
 import pt.tahvago.service.AuthenticationService;
 import pt.tahvago.service.JwtService;
 
-
 @RestController
 @RequestMapping("/api/auth")
 public class AuthenticationController {
@@ -46,16 +45,16 @@ public class AuthenticationController {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
-    
+
     @PostMapping("/reset-password")
-public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordDto resetPasswordDto) {
-    try {
-        authenticationService.resetPassword(resetPasswordDto);
-        return ResponseEntity.ok(Map.of("message", "Password has been reset successfully"));
-    } catch (RuntimeException e) {
-        return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+    public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordDto resetPasswordDto) {
+        try {
+            authenticationService.resetPassword(resetPasswordDto);
+            return ResponseEntity.ok(Map.of("message", "Password has been reset successfully"));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
     }
-}
 
     @PostMapping("/signup")
     public ResponseEntity<?> register(@RequestBody RegisterUserDto registerUserDto) {
@@ -90,21 +89,24 @@ public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordDto resetPasswo
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
         }
     }
-@PostMapping("/verify")
+
+    @PostMapping("/verify")
     public ResponseEntity<?> verifyUser(@RequestBody VerifyUserDto verifyUserDto) {
+        System.out.println("DEBUG -> Verifying Email: " + verifyUserDto.getEmail());
+        System.out.println("DEBUG -> Received Code: " + verifyUserDto.getCode());
+
         try {
             AppUser user = authenticationService.verifyUser(verifyUserDto);
             String jwtToken = jwtService.generateToken(user);
-            
+
             VerifyResponse response = new VerifyResponse(
-                jwtToken, 
-                jwtService.getExpirationTime(), 
-                "Account verified successfully"
-            );
-            
+                    jwtToken,
+                    jwtService.getExpirationTime(),
+                    "Account verified successfully");
+
             return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
 
