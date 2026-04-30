@@ -5,7 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.Authentication;
 import lombok.RequiredArgsConstructor;
-import pt.tahvago.dto.User.FullUserProfileResponse;
+import pt.tahvago.dto.Membership.test.FullUserProfileResponse;
 import pt.tahvago.model.Membership;
 import pt.tahvago.service.MembershipService;
 import pt.tahvago.model.AppUser;
@@ -19,18 +19,25 @@ public class MembershipController {
     private final MembershipService membershipService;
     private final UserRepository userRepository;
 
+    
+
     @GetMapping("/me")
-    public ResponseEntity<FullUserProfileResponse> getMyMembership(Authentication authentication) {
-        String email = authentication.getName();
-        return ResponseEntity.ok(membershipService.getFullProfile(email));
+public ResponseEntity<FullUserProfileResponse> getMyMembership(Authentication authentication) {
+    if (authentication == null || !authentication.isAuthenticated()) {
+        return ResponseEntity.status(401).build();
     }
 
-    @PostMapping("/me/{id}")
-    public ResponseEntity<FullUserProfileResponse> getProfileById(@PathVariable Long id) {
-        AppUser user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        return ResponseEntity.ok(membershipService.getFullProfile(user.getEmail()));
+    try {
+        AppUser currentUser = (AppUser) authentication.getPrincipal();
+
+        return ResponseEntity.ok(
+                membershipService.getFullProfile(currentUser.getEmail())
+        );
+
+    } catch (ClassCastException e) {
+        return ResponseEntity.status(403).build();
     }
+}
 
     @PostMapping("/assign-me")
     public ResponseEntity<Membership> assignToMe(

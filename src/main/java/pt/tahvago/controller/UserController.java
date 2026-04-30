@@ -25,7 +25,7 @@ import pt.tahvago.dto.User.BulkRoleUpdateDto;
 import pt.tahvago.dto.User.BulkStatusUpdateDto;
 import pt.tahvago.dto.User.ChangePasswordDto;
 import pt.tahvago.dto.User.CreateUserDto;
-import pt.tahvago.dto.User.FullUserProfileResponse;
+import pt.tahvago.dto.Membership.test.FullUserProfileResponse;
 import pt.tahvago.dto.User.PatchUserDto;
 import pt.tahvago.dto.User.UpdateUserDto;
 import pt.tahvago.dto.User.UserDto;
