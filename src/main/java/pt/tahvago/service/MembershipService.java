@@ -8,9 +8,6 @@ import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 
 import pt.tahvago.dto.Membership.UserMembershipResponse;
-import pt.tahvago.dto.Membership.test.AppUserMembershipDto;
-import pt.tahvago.dto.Membership.test.MembershipMembershipDto;
-import pt.tahvago.dto.Membership.test.StartupMembershipDto;
 import pt.tahvago.dto.Membership.test.*;
 
 import pt.tahvago.model.AppUser;
@@ -149,4 +146,50 @@ public class MembershipService {
                 .startups(startups)
                 .build();
     }
+
+
+
+
+
+
+    @Transactional
+public Membership updateTier(Long userId, Integer tierLevel) {
+
+    AppUser user = userRepository.findById(userId)
+            .orElseThrow(() -> new RuntimeException("User not found"));
+
+    Membership membership = membershipRepository.findByUserId(userId)
+            .orElseThrow(() -> new RuntimeException("Membership not found"));
+
+    membership.setUser(user);
+    membership.setTierLevel(tierLevel);
+
+    switch (tierLevel) {
+        case 0 -> {
+            membership.setTierName("Free Tier");
+            membership.setMonthlyCreditAllotment(500);
+            membership.setMonthlyPrice(0.0);
+        }
+        case 1 -> {
+            membership.setTierName("Starter Tier");
+            membership.setMonthlyCreditAllotment(1000);
+            membership.setMonthlyPrice(9.99);
+        }
+        case 2 -> {
+            membership.setTierName("Growth Tier");
+            membership.setMonthlyCreditAllotment(5000);
+            membership.setMonthlyPrice(29.99);
+        }
+        case 3 -> {
+            membership.setTierName("Enterprise Tier");
+            membership.setMonthlyCreditAllotment(20000);
+            membership.setMonthlyPrice(99.99);
+        }
+        default -> throw new RuntimeException("Invalid tier level");
+    }
+
+    membership.setStatus("active");
+
+    return membershipRepository.save(membership);
+}
 }

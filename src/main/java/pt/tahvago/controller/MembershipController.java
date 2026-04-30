@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.Authentication;
 import lombok.RequiredArgsConstructor;
+import pt.tahvago.dto.Membership.MembershipTierUpdateRequest;
 import pt.tahvago.dto.Membership.test.FullUserProfileResponse;
 import pt.tahvago.model.Membership;
 import pt.tahvago.service.MembershipService;
@@ -69,4 +70,20 @@ public ResponseEntity<FullUserProfileResponse> getMyMembership(Authentication au
     public ResponseEntity<Membership> getUserMembership(@PathVariable Long userId) {
         return ResponseEntity.ok(membershipService.getMembershipByUserId(userId));
     }
+
+
+    @PostMapping("/update-tier")
+public ResponseEntity<Membership> updateTier(@RequestBody MembershipTierUpdateRequest request) {
+
+    if (request.getUserId() == null || request.getTierLevel() == null) {
+        throw new RuntimeException("userId and tierLevel are required");
+    }
+
+    return ResponseEntity.ok(
+            membershipService.updateTier(
+                    request.getUserId(),
+                    request.getTierLevel()
+            )
+    );
+}
 }

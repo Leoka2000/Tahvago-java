@@ -1,6 +1,9 @@
 package pt.tahvago.model;
 
 import java.time.LocalDateTime;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -17,11 +20,10 @@ public class Membership {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // ✅ THIS IS THE FK OWNER SIDE
     @OneToOne
     @JoinColumn(name = "user_id", nullable = false)
+    @JsonIgnore // So not infinite recursion
     private AppUser user;
-
     @Column(nullable = false)
     private Integer tierLevel = 0;
 
