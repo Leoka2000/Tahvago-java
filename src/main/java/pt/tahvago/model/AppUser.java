@@ -11,20 +11,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.OneToOne;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -33,6 +20,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class AppUser implements UserDetails {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -94,8 +82,17 @@ public class AppUser implements UserDetails {
         this.createdAt = LocalDateTime.now();
     }
 
-    public AppUser() {
-    }
+    /* ================= RELATIONS ================= */
+
+    @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private List<Startup> startups;
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private Membership membership;
+
+    /* ================= SECURITY ================= */
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -129,6 +126,7 @@ public class AppUser implements UserDetails {
 
     public void setFullName(String fullName) {
         this.fullName = fullName;
+
         if (this.firstName == null || this.lastName == null) {
             if (fullName != null && fullName.contains(" ")) {
                 String[] parts = fullName.split(" ", 2);
@@ -140,10 +138,4 @@ public class AppUser implements UserDetails {
             }
         }
     }
-
-    @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Startup> startups;
-
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
-    private Membership membership;
 }
